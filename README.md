@@ -1,1 +1,1 @@
-# Sky-Trap-MTD
+# SkyTrap-MTD
