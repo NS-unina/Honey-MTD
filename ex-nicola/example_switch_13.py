@@ -20,6 +20,8 @@ from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet
+from ryu.lib.packet import ipv4
+from ryu.lib.packet import icmp
 
 
 class ExampleSwitch13(app_manager.RyuApp):
@@ -29,6 +31,8 @@ class ExampleSwitch13(app_manager.RyuApp):
         super(ExampleSwitch13, self).__init__(*args, **kwargs)
         # initialize mac address table.
         self.mac_to_port = {}
+        # initialize forwarding table.
+        self.src_ip_to_port = {}
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -59,16 +63,19 @@ class ExampleSwitch13(app_manager.RyuApp):
         datapath = msg.datapath
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
+        datap = msg.data
 
         # get Datapath ID to identify OpenFlow switches.
         dpid = datapath.id
         self.mac_to_port.setdefault(dpid, {})
+        self.src_ip_to_port.setdefault(dpid, {})
 
         # analyse the received packets using the packet library.
         pkt = packet.Packet(msg.data)
         eth_pkt = pkt.get_protocol(ethernet.ethernet)
         dst = eth_pkt.dst
         src = eth_pkt.src
+
 
         # get the received port number from packet_in message.
         in_port = msg.match['in_port']
@@ -78,12 +85,15 @@ class ExampleSwitch13(app_manager.RyuApp):
         # learn a mac address to avoid FLOOD next time.
         self.mac_to_port[dpid][src] = in_port
 
+
         # if the destination mac address is already learned,
         # decide which port to output the packet, otherwise FLOOD.
+
         if dst in self.mac_to_port[dpid]:
             out_port = self.mac_to_port[dpid][dst]
         else:
             out_port = ofproto.OFPP_FLOOD
+
 
         # construct action list.
         actions = [parser.OFPActionOutput(out_port)]
@@ -93,9 +103,36 @@ class ExampleSwitch13(app_manager.RyuApp):
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
             self.add_flow(datapath, 1, match, actions)
 
+
+        icmp_pkt = pkt.get_protocol(icmp.icmp)
+        if icmp_pkt:
+            ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
+            if ipv4_pkt.src == '156.134.2.12':
+                self.logger.info("Dpid %s", dpid)
+                if dpid == 4:
+                    self.logger.info("src eth: %s", eth_pkt.src)
+                    self.logger.info("dst eth: %s", eth_pkt.dst)
+                    self.logger.info("dst ip: %s", ipv4_pkt.dst)
+                    out_port = 7
+                    actions = [parser.OFPActionSetField(eth_dst='00:00:00:00:00:01'),
+                    parser.OFPActionSetField(ipv4_dst='10.0.1.10'),
+                    parser.OFPActionOutput(out_port)]
+                    
+                    match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='156.134.2.12')
+                    self.add_flow(datapath, 100, match, actions)
+                elif dpid == 1:
+                    self.logger.info("src eth: %s", eth_pkt.src)
+                    self.logger.info("dst eth: %s", eth_pkt.dst)
+                    self.logger.info("dst ip: %s", ipv4_pkt.dst)
+                    out_port = 1
+                    actions = [parser.OFPActionOutput(out_port)]
+                    match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='156.134.2.12')
+                    self.add_flow(datapath, 100, match, actions)
+
+
         # construct packet_out message and send it.
         out = parser.OFPPacketOut(datapath=datapath,
                                   buffer_id=ofproto.OFP_NO_BUFFER,
                                   in_port=in_port, actions=actions,
-                                  data=msg.data)
+                                  data=datap)
         datapath.send_msg(out)

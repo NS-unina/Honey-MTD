@@ -37,6 +37,7 @@ class final_topo(Topo):
     # Link Core switch to Trusted Host & Untrusted Host
     self.addLink(s4, h4, port1=4, port2=0)
     self.addLink(s4, h5, port1=5, port2=0)
+
     
     # Link Data Center switch to Server
     self.addLink(s5, h6, port1=6, port2=0)
