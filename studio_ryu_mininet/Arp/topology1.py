@@ -1,0 +1,40 @@
+from mininet.topo import Topo
+from mininet.net import Mininet
+from mininet.cli import CLI
+from mininet.node import RemoteController
+
+
+class Topology1(Topo):
+    """Topology 1"""
+    def build(self):
+        h10 = self.addHost('h10', mac='00:00:00:00:00:01', ip='10.0.1.10/24', defaultRoute="h10-eth0")
+
+        h11 = self.addHost('h11', mac='00:00:00:00:00:02', ip='10.0.1.11/24', defaultRoute="h11-eth0")
+        h12 = self.addHost('h12', mac='00:00:00:00:00:03', ip='10.0.1.12/24', defaultRoute="h12-eth0")
+
+        h20 = self.addHost('h20', mac='00:00:00:00:00:04', ip='10.0.2.20/24', defaultRoute="h20-eth0")
+
+
+
+        s_1 = self.addSwitch('s_1')
+        s_2 = self.addSwitch('s_2')
+
+
+        self.addLink(s_1, h10, port1=1, port2=0)
+        self.addLink(s_1, h11, port1=2, port2=0)
+        self.addLink(s_1, h12, port1=3, port2=0)
+
+        self.addLink(s_2, h20, port1=4, port2=0)
+
+        self.addLink(s_1, s_2, port1=5, port2=6)
+
+def configure():
+    """Docstring"""
+    topo = Topology1()
+    net = Mininet(topo=topo, controller=RemoteController)
+    net.start()
+    CLI(net) 
+    net.stop()
+
+if __name__ == '__main__':
+    configure()
