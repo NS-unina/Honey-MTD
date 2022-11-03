@@ -20,6 +20,7 @@ sudo python topology1_0.py
 Now you can test the environment.
 
 **Arp-Scan**
+
 From the *attacker* shell:
 
 ``` 
@@ -34,6 +35,7 @@ You 'll se only what the controller wants to show you: the honeypot and the host
 
 
 **Ping redirection**
+
 From the *attacker* shell:
 ```
 h10 ping h12

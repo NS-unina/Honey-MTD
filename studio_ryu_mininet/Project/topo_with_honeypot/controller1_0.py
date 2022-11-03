@@ -114,6 +114,11 @@ class ExampleSwitch13(app_manager.RyuApp):
                     # vedi bene se la regola viene inserita
                     match = parser.OFPMatch(eth_type=0x800, arp_spa=arp_pkt.src_ip, arp_tpa=arp_pkt.dst_ip)
                     self.add_flow(datapath, 101, match, actions)
+                    
+            # The other hosts doesn't see the honeypot
+            if arp_pkt.opcode == arp.ARP_REQUEST and (arp_pkt.src_ip == '10.0.1.11' or arp_pkt.src_ip == '10.0.1.12'):
+                if arp_pkt.dst_ip == '10.0.1.200':
+                    actions = [parser.OFPActionOutput(ofproto.OFPC_FRAG_DROP)]
 
         # take icmp packet from insider attacker and redirects to honeypot.
         icmp_pkt = pkt.get_protocol(icmp.icmp)
