@@ -1,0 +1,6 @@
+ARP-SCAN
+host_name arp-scan -l
+
+PING-SCAN
+host_name nmap -sn/sP + IP addresses
+
