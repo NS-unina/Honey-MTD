@@ -47,7 +47,7 @@ You 'll receive the response from honeypot unstead host h12.
 
 **HTTP request redirection**
 
-Host h13 is the decoy used to simulate *ping redirection*. 
+Host h13 is the decoy used to simulate *HTTP Request redirection*. 
 
 First of all from host 13 run the python *SimpleHTTPServer* listening on port 80 in background:
 ```
