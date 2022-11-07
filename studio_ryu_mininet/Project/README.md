@@ -1,4 +1,5 @@
 
+
 # SkyTrap-MTD
 
 ## Examples description
@@ -36,11 +37,34 @@ You 'll se only what the controller wants to show you: the honeypot and the host
 
 **Ping redirection**
 
+Host h12 is the decoy used to simulate *ping redirection*.
+
 From the *attacker* shell:
 ```
 h10 ping h12
 ``` 
 You 'll receive the response from honeypot unstead host h12.
+
+**HTTP request redirection**
+
+Host h13 is the decoy used to simulate *ping redirection*. 
+
+First of all from host 13 run the python *SimpleHTTPServer* listening on port 80 in background:
+```
+h13 python -m http.server 80 &
+```
+Then do the same from honeypot:
+```
+h200 python -m http.server 80 &
+```
+The port should be the same of decoy host.
+
+After that, from the attacker send an HTTP request to the host h13, using the *wget* tool:
+```
+h10 wget h13
+```
+Your request will be redirected to the honeypot through the controller.
+It also manage properly its response.
 
 + In **topo_without_honeypot** the topology doesn't include the honeypot as an host. The controller simulates it making it visible only to the attacker, but it is not a real host. 
 The execution is the same of previous example.
