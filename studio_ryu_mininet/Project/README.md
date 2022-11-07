@@ -49,6 +49,8 @@ You 'll receive the response from honeypot unstead host h12.
 
 Host h13 is the decoy used to simulate *HTTP Request redirection*. 
 
+Restart the environment.
+
 First of all from host 13 run the python *SimpleHTTPServer* listening on port 80 in background:
 ```
 h13 python -m http.server 80 &
