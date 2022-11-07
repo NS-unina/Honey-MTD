@@ -23,6 +23,7 @@ from ryu.lib.packet import ethernet
 from ryu.lib.packet import arp
 from ryu.lib.packet import icmp
 from ryu.lib.packet import ipv4
+from ryu.lib.packet import tcp
 
 class ExampleSwitch13(app_manager.RyuApp):
     '''ExampleSwitch13'''
@@ -109,28 +110,66 @@ class ExampleSwitch13(app_manager.RyuApp):
         # take arp packet.
         arp_pkt = pkt.get_protocol(arp.arp)
         if arp_pkt:
-           actions = self.manage_arp(arp_pkt, parser, ofproto, datapath, actions)
+           self.logger.info("ARP")
+           actions = self.manage_arp(arp_pkt, parser, datapath, actions)
 
         # take icmp packet from insider attacker and redirects to honeypot.
         icmp_pkt = pkt.get_protocol(icmp.icmp)
         if icmp_pkt:
+           self.logger.info("ICMP")
            ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
            actions = self.manage_icmp(icmp_pkt, ipv4_pkt, eth_pkt, parser, datapath, actions)
 
+        # take tcp segment.
+        tcp_pkt = pkt.get_protocol(tcp.tcp)
+        if tcp_pkt:
+            # Host h13 scelto per simulazione TCP scan
+            self.logger.info("TCP")
+            self.logger.info(tcp_pkt.dst_port)
+            ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
+            self.logger.info(ipv4_pkt)
+
+            # RICHIESTA
+            if tcp_pkt.dst_port == 80:
+                if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.13':
+                    self.logger.info("Here")
+                    out_port = 7 
+                    actions = [parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
+                               parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
+                               # parser.OPFActionSetField(tcp_dst=8080), mi da problemi il redirect della porta
+                               parser.OFPActionOutput(out_port)]
+
+                    match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.13')
+                    self.add_flow(datapath, 100, match, actions)
+            # RISPOSTA
+            if tcp_pkt.src_port == 80:
+                if ipv4_pkt.src == '10.0.1.200' and ipv4_pkt.dst == '10.0.1.10':
+                    self.logger.info("Risposta ricevuta dall'honeypot")
+                    out_port = 1
+                    actions = [parser.OFPActionSetField(ipv4_src='10.0.1.13'),
+                               parser.OFPActionSetField(eth_src='0:00:00:00:00:05'),
+                               parser.OFPActionOutput(out_port)]
+
+                    match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.200', ipv4_dst='10.0.1.10')
+                    self.add_flow(datapath, 100, match, actions)
+
+
         # construct packet_out message and send it.
         out = parser.OFPPacketOut(datapath=datapath,
-                                  buffer_id=ofproto.OFP_NO_BUFFER,
-                                  in_port=in_port, actions=actions,
-                                  data=datap)
+                                buffer_id=ofproto.OFP_NO_BUFFER,
+                                in_port=in_port, actions=actions,
+                                data=datap)
         datapath.send_msg(out)
 
 
     # Packet-in Utils da organizzare meglio
-    def manage_arp(self, arp_pkt, parser, ofproto, datapath, actions):
+    def manage_arp(self, arp_pkt, parser, datapath, actions):
+        # Host h11 è quello nascosto nella arp scan
+        # Honeypot h200 è visibile solo all'attaccante h10
         if arp_pkt.opcode == arp.ARP_REQUEST and arp_pkt.src_ip == '10.0.1.10':
             if arp_pkt.dst_ip == '10.0.1.11': #or arp_pkt.dst_ip == '10.0.1.12':
                 #self.logger.info(arp_pkt)
-                actions = [parser.OFPActionOutput(ofproto.OFPC_FRAG_DROP)]
+                actions = [parser.OFPActionOutput(0)]
                 # vedi bene se la regola viene inserita, non credo
                 match = parser.OFPMatch(eth_type=0x800, arp_spa=arp_pkt.src_ip, arp_tpa=arp_pkt.dst_ip)
                 self.add_flow(datapath, 101, match, actions)
@@ -139,11 +178,12 @@ class ExampleSwitch13(app_manager.RyuApp):
         # Questa cosa è da implementare diversamente nel momento in cui viene creata la overlay network
         if arp_pkt.opcode == arp.ARP_REQUEST and (arp_pkt.src_ip == '10.0.1.11' or arp_pkt.src_ip == '10.0.1.12'):
             if arp_pkt.dst_ip == '10.0.1.200':
-                actions = [parser.OFPActionOutput(ofproto.OFPC_FRAG_DROP)]
+                actions = [parser.OFPActionOutput(0)]
         return actions
 
     def manage_icmp(self, icmp_pkt, ipv4_pkt, eth_pkt, parser, datapath, actions):
-        if ipv4_pkt.src == '10.0.1.10':
+        # Host h12 scelto per simulazione ICMP redirection (PING scan)
+        if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.12':
             #self.logger.info("Dpid %s", dpid)
             self.logger.info("src eth: %s", eth_pkt.src)
             self.logger.info("dst eth: %s", eth_pkt.dst)
@@ -153,6 +193,6 @@ class ExampleSwitch13(app_manager.RyuApp):
                        parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
                        parser.OFPActionOutput(out_port)]
             
-            match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10')
+            match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.12')
             self.add_flow(datapath, 100, match, actions)
         return actions
