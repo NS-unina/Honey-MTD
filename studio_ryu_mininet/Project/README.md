@@ -1,5 +1,6 @@
 
 
+
 # SkyTrap-MTD
 
 ## Examples description
@@ -49,17 +50,21 @@ You 'll receive the response from honeypot unstead host h12.
 
 Host h13 is the decoy used to simulate *HTTP Request redirection*. 
 
-Restart the environment.
+Restart the environment. 
+
+Remember to fresh the topology on your system:
+```
+sudo mn -c
+```
 
 First of all from host 13 run the python *SimpleHTTPServer* listening on port 80 in background:
 ```
 h13 python -m http.server 80 &
 ```
-Then do the same from honeypot:
+Then do the same from honeypot, but listening on port 8080:
 ```
-h200 python -m http.server 80 &
+h200 python -m http.server 8080 &
 ```
-The port should be the same of decoy host.
 
 After that, from the attacker send an HTTP request to the host h13, using the *wget* tool:
 ```
