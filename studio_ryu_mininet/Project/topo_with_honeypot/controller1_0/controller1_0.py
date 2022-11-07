@@ -128,31 +128,7 @@ class ExampleSwitch13(app_manager.RyuApp):
             self.logger.info(tcp_pkt.dst_port)
             ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
             self.logger.info(ipv4_pkt)
-
-            # RICHIESTA
-            if tcp_pkt.dst_port == 80:
-                if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.13':
-                    self.logger.info("Here")
-                    out_port = 7 
-                    actions = [parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
-                               parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
-                               parser.OFPActionSetField(tcp_dst=8080), 
-                               parser.OFPActionOutput(out_port)]
-
-                    match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.13', ip_proto=6, tcp_dst=80)
-                    self.add_flow(datapath, 100, match, actions)
-            # RISPOSTA
-            if tcp_pkt.src_port == 8080:
-                if ipv4_pkt.src == '10.0.1.200' and ipv4_pkt.dst == '10.0.1.10':
-                    self.logger.info("Risposta ricevuta dall'honeypot")
-                    out_port = 1
-                    actions = [parser.OFPActionSetField(ipv4_src='10.0.1.13'),
-                               parser.OFPActionSetField(eth_src='00:00:00:00:00:05'),
-                               parser.OFPActionSetField(tcp_src=80), 
-                               parser.OFPActionOutput(out_port)]
-
-                    match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.200', ipv4_dst='10.0.1.10', ip_proto=6, tcp_src=8080)
-                    self.add_flow(datapath, 100, match, actions)
+            actions = self.manage_tcp(tcp_pkt, ipv4_pkt, parser, datapath)
 
 
         # construct packet_out message and send it.
@@ -196,4 +172,31 @@ class ExampleSwitch13(app_manager.RyuApp):
             
             match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.12')
             self.add_flow(datapath, 100, match, actions)
+        return actions
+
+    def manage_tcp(self, tcp_pkt, ipv4_pkt, parser, datapath):
+        # RICHIESTA
+        if tcp_pkt.dst_port == 80:
+            if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.13':
+                self.logger.info("HTTP Request from the attacker")
+                out_port = 7 
+                actions = [parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
+                            parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
+                            parser.OFPActionSetField(tcp_dst=8080), 
+                            parser.OFPActionOutput(out_port)]
+
+                match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.13', ip_proto=6, tcp_dst=80)
+                self.add_flow(datapath, 100, match, actions)
+        # RISPOSTA
+        if tcp_pkt.src_port == 8080:
+            if ipv4_pkt.src == '10.0.1.200' and ipv4_pkt.dst == '10.0.1.10':
+                self.logger.info("HTTP Response from honeypot")
+                out_port = 1
+                actions = [parser.OFPActionSetField(ipv4_src='10.0.1.13'),
+                            parser.OFPActionSetField(eth_src='00:00:00:00:00:05'),
+                            parser.OFPActionSetField(tcp_src=80), 
+                            parser.OFPActionOutput(out_port)]
+
+                match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.200', ipv4_dst='10.0.1.10', ip_proto=6, tcp_src=8080)
+                self.add_flow(datapath, 100, match, actions)
         return actions
