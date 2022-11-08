@@ -128,7 +128,7 @@ class ExampleSwitch13(app_manager.RyuApp):
             self.logger.info(tcp_pkt.dst_port)
             ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
             self.logger.info(ipv4_pkt)
-            actions = self.manage_tcp(tcp_pkt, ipv4_pkt, parser, datapath)
+            actions = self.manage_tcp(tcp_pkt, ipv4_pkt, parser, datapath, actions)
 
 
         # construct packet_out message and send it.
@@ -174,7 +174,7 @@ class ExampleSwitch13(app_manager.RyuApp):
             self.add_flow(datapath, 100, match, actions)
         return actions
 
-    def manage_tcp(self, tcp_pkt, ipv4_pkt, parser, datapath):
+    def manage_tcp(self, tcp_pkt, ipv4_pkt, parser, datapath, actions):
         # RICHIESTA
         if tcp_pkt.dst_port == 80:
             if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.13':
