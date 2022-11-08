@@ -24,6 +24,7 @@ from ryu.lib.packet import arp
 from ryu.lib.packet import icmp
 from ryu.lib.packet import ipv4
 from ryu.lib.packet import tcp
+from ryu.lib.packet import udp
 
 class ExampleSwitch13(app_manager.RyuApp):
     '''ExampleSwitch13'''
@@ -120,16 +121,34 @@ class ExampleSwitch13(app_manager.RyuApp):
            ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
            actions = self.manage_icmp(icmp_pkt, ipv4_pkt, eth_pkt, parser, datapath, actions)
 
-        # take tcp segment.
+        # tcp segment.
         tcp_pkt = pkt.get_protocol(tcp.tcp)
         if tcp_pkt:
             # Host h13 scelto per simulazione TCP scan
             self.logger.info("TCP")
-            self.logger.info(tcp_pkt.dst_port)
+            # self.logger.info(tcp_pkt.dst_port)
             ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
             self.logger.info(ipv4_pkt)
             actions = self.manage_tcp(tcp_pkt, ipv4_pkt, parser, datapath, actions)
 
+        # udp segment.
+        udp_pkt = pkt.get_protocol(udp.udp)
+        if udp_pkt:
+            if udp_pkt.dst_port == 123:
+                ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
+                self.logger.info(udp_pkt)
+                self.logger.info(ipv4_pkt)
+        
+                if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.13':
+                        self.logger.info("NTP Request from the attacker")
+                        out_port = 7 
+                        actions = [parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
+                                    parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
+                                    parser.OFPActionSetField(udp_dst=53), 
+                                    parser.OFPActionOutput(out_port)]
+
+                        match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.13', ip_proto=17, udp_dst=123)
+                        self.add_flow(datapath, 100, match, actions)
 
         # construct packet_out message and send it.
         out = parser.OFPPacketOut(datapath=datapath,
@@ -176,6 +195,7 @@ class ExampleSwitch13(app_manager.RyuApp):
 
     def manage_tcp(self, tcp_pkt, ipv4_pkt, parser, datapath, actions):
         # RICHIESTA
+        self.logger.info(tcp_pkt.dst_port)
         if tcp_pkt.dst_port == 80:
             if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.13':
                 self.logger.info("HTTP Request from the attacker")
@@ -188,6 +208,7 @@ class ExampleSwitch13(app_manager.RyuApp):
                 match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.13', ip_proto=6, tcp_dst=80)
                 self.add_flow(datapath, 100, match, actions)
         # RISPOSTA
+        self.logger.info(tcp_pkt.src_port)
         if tcp_pkt.src_port == 8080:
             if ipv4_pkt.src == '10.0.1.200' and ipv4_pkt.dst == '10.0.1.10':
                 self.logger.info("HTTP Response from honeypot")
