@@ -131,7 +131,7 @@ class ExampleSwitch13(app_manager.RyuApp):
             self.logger.info(ipv4_pkt)
             actions = self.manage_tcp(tcp_pkt, ipv4_pkt, parser, datapath, actions)
 
-        # udp segment.
+        # udp datagram.
         udp_pkt = pkt.get_protocol(udp.udp)
         if udp_pkt:
             if udp_pkt.dst_port == 123:
