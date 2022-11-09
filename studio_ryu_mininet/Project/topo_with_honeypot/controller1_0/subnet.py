@@ -1,6 +1,8 @@
-class route(object):
+class subnet(object):
     '''route object : collection of nodes of a virtual topology'''
-    def __init__(self, startNode=None, endNode=None):
+    def __init__(self, ip_addr=None, netmask=0, startNode=None, endNode=None):
+        self.ip_addr=ip_addr
+        self.netmask=netmask
         self.startNode=startNode
         self.endNode=endNode
         self.hops=[]
