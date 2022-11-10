@@ -26,6 +26,8 @@ from ryu.lib.packet import ipv4
 from ryu.lib.packet import tcp
 from ryu.lib.packet import udp
 
+
+
 class ExampleSwitch13(app_manager.RyuApp):
     '''ExampleSwitch13'''
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -111,8 +113,23 @@ class ExampleSwitch13(app_manager.RyuApp):
         # take arp packet.
         arp_pkt = pkt.get_protocol(arp.arp)
         if arp_pkt:
-           self.logger.info("ARP")
-           actions = self.manage_arp(arp_pkt, parser, datapath, actions)
+           #self.logger.info("ARP")
+
+           if arp_pkt.opcode == arp.ARP_REQUEST and arp_pkt.src_ip == '10.0.1.10':
+              if arp_pkt.dst_ip == '10.0.1.11' or arp_pkt.dst_ip == '10.0.1.12':
+                 self.drop_arp(parser, arp_pkt, datapath)
+
+           if arp_pkt.opcode == arp.ARP_REPLY and arp_pkt.dst_ip == '10.0.1.10':
+              if arp_pkt.src_ip == '10.0.1.11' or arp_pkt.src_ip == '10.0.1.12':
+                 self.drop_arp(parser, arp_pkt, datapath)          
+
+           #if arp_pkt.opcode == arp.ARP_REQUEST and (arp_pkt.src_ip == '10.0.1.11' or arp_pkt.src_ip == '10.0.1.12'):
+           #   if arp_pkt.dst_ip == '10.0.1.200':   
+           #     self.drop_arp(parser, arp_pkt, datapath)
+           
+  
+
+        
 
         # take icmp packet from insider attacker and redirects to honeypot.
         icmp_pkt = pkt.get_protocol(icmp.icmp)
@@ -134,21 +151,8 @@ class ExampleSwitch13(app_manager.RyuApp):
         # udp datagram.
         udp_pkt = pkt.get_protocol(udp.udp)
         if udp_pkt:
-            if udp_pkt.dst_port == 123:
-                ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
-                self.logger.info(udp_pkt)
-                self.logger.info(ipv4_pkt)
-        
-                if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.13':
-                        self.logger.info("NTP Request from the attacker")
-                        out_port = 7 
-                        actions = [parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
-                                    parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
-                                    parser.OFPActionSetField(udp_dst=53), 
-                                    parser.OFPActionOutput(out_port)]
-
-                        match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.13', ip_proto=17, udp_dst=123)
-                        self.add_flow(datapath, 100, match, actions)
+            self.logger.info("UDP")
+            actions = self.manage_udp(udp_pkt, pkt, parser, datapath, actions)
 
         # construct packet_out message and send it.
         out = parser.OFPPacketOut(datapath=datapath,
@@ -158,8 +162,18 @@ class ExampleSwitch13(app_manager.RyuApp):
         datapath.send_msg(out)
 
 
-    # Packet-in Utils da organizzare meglio
-    def manage_arp(self, arp_pkt, parser, datapath, actions):
+
+# POLICIES
+
+    def drop_arp(self, parser, arp_pkt, datapath):
+        actions = []
+        match = parser.OFPMatch(eth_type=0x0806, arp_spa=arp_pkt.src_ip, arp_tpa=arp_pkt.dst_ip)
+        #self.logger.info(actions)
+        #self.logger.info(match)
+        self.add_flow(datapath, 101, match, actions)
+
+
+    '''def manage_arp(self, arp_pkt, parser, datapath, actions):
         # Host h11 è quello nascosto nella arp scan
         # Honeypot h200 è visibile solo all'attaccante h10
         if arp_pkt.opcode == arp.ARP_REQUEST and arp_pkt.src_ip == '10.0.1.10':
@@ -176,6 +190,9 @@ class ExampleSwitch13(app_manager.RyuApp):
             if arp_pkt.dst_ip == '10.0.1.200':
                 actions = [parser.OFPActionOutput(0)]
         return actions
+    '''
+    
+
 
     def manage_icmp(self, icmp_pkt, ipv4_pkt, eth_pkt, parser, datapath, actions):
         # Host h12 scelto per simulazione ICMP redirection (PING scan)
@@ -220,4 +237,22 @@ class ExampleSwitch13(app_manager.RyuApp):
 
                 match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.200', ipv4_dst='10.0.1.10', ip_proto=6, tcp_src=8080)
                 self.add_flow(datapath, 100, match, actions)
+        return actions
+    
+    def manage_udp(self, udp_pkt, pkt, parser, datapath, actions):
+        if udp_pkt.dst_port == 123:
+            ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
+            self.logger.info(udp_pkt)
+            self.logger.info(ipv4_pkt)
+    
+            if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.13':
+                    self.logger.info("NTP Request from the attacker")
+                    out_port = 7 
+                    actions = [parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
+                                parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
+                                parser.OFPActionSetField(udp_dst=53), 
+                                parser.OFPActionOutput(out_port)]
+
+                    match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.13', ip_proto=17, udp_dst=123)
+                    self.add_flow(datapath, 100, match, actions)
         return actions
