@@ -79,9 +79,10 @@ class ExampleSwitch13(app_manager.RyuApp):
 
         # analyse the received packets using the packet library.
         pkt = packet.Packet(msg.data)
+
         eth_pkt = pkt.get_protocol(ethernet.ethernet)
-        dst = eth_pkt.dst
-        src = eth_pkt.src
+        # dst = eth_pkt.dst
+        # src = eth_pkt.src
 
 
         # get the received port number from packet_in message.
@@ -90,46 +91,83 @@ class ExampleSwitch13(app_manager.RyuApp):
         #self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
 
         # learn a mac address to avoid FLOOD next time.
-        self.mac_to_port[dpid][src] = in_port
+        # self.mac_to_port[dpid][src] = in_port
 
 
         # if the destination mac address is already learned,
         # decide which port to output the packet, otherwise FLOOD.
 
-        if dst in self.mac_to_port[dpid]:
-            out_port = self.mac_to_port[dpid][dst]
-        else:
-            out_port = ofproto.OFPP_FLOOD
+       # if dst in self.mac_to_port[dpid]:
+        #    out_port = self.mac_to_port[dpid][dst]
+        #else:
+        #    out_port = ofproto.OFPP_FLOOD
 
 
         # construct action list.
-        actions = [parser.OFPActionOutput(out_port)]
+        # actions = [parser.OFPActionOutput(out_port)]
 
         # install a flow to avoid packet_in next time.
         #if out_port != ofproto.OFPP_FLOOD:
         #    match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
         #    self.add_flow(datapath, 1, match, actions)
 
-        # take arp packet.
+
+
+        
+        ip_hosts1 = ['10.0.1.10', '10.0.1.11', '10.0.1.12', '10.0.1.13', '10.0.1.200']
+        ports1 = [1, 2, 3, 8, 7]
+        ip_hosts2 = ['10.0.2.20']
+        ports2 = [4]
+
+        ip_attacker = ip_hosts1[0]
+        attacker_port = ports1[0]
+        ip_honeypot = ip_hosts1[4]
+        honeypot_port = ports1[4]
+   
+        actions =''
         arp_pkt = pkt.get_protocol(arp.arp)
         if arp_pkt:
            #self.logger.info("ARP")
            op_code = arp_pkt.opcode
-           if op_code == arp.ARP_REQUEST and arp_pkt.src_ip == '10.0.1.10':
-              if arp_pkt.dst_ip == '10.0.1.11' : #or arp_pkt.dst_ip == '10.0.1.12':
-                 print(arp_pkt)
+
+           if op_code == arp.ARP_REQUEST and arp_pkt.src_ip == ip_attacker:
+              if arp_pkt.dst_ip == ip_hosts1[1] : #or arp_pkt.dst_ip == '10.0.1.12':
+                 #print(arp_pkt)
+                 actions = []
                  self.drop_arp(parser, arp_pkt, datapath, op_code)
 
-           if op_code == arp.ARP_REPLY and arp_pkt.dst_ip == '10.0.1.10':
-              if arp_pkt.src_ip == '10.0.1.11' : #or arp_pkt.src_ip == '10.0.1.12':
+           if op_code == arp.ARP_REPLY and arp_pkt.dst_ip == ip_attacker:
+              if arp_pkt.src_ip == ip_hosts1[1] : #or arp_pkt.src_ip == '10.0.1.12':
+                 actions = []
                  self.drop_arp(parser, arp_pkt, datapath, op_code)          
 
-           #if arp_pkt.opcode == arp.ARP_REQUEST and (arp_pkt.src_ip == '10.0.1.11' or arp_pkt.src_ip == '10.0.1.12'):
-           #   if arp_pkt.dst_ip == '10.0.1.200':   
-           #     self.drop_arp(parser, arp_pkt, datapath)
+           if op_code == arp.ARP_REQUEST and arp_pkt.src_ip == ip_attacker:
+              if arp_pkt.dst_ip == ip_honeypot:   
+                actions = [parser.OFPActionOutput(honeypot_port)]
+                self.permit_arp(parser, arp_pkt, datapath, op_code, honeypot_port)
            
-  
+           if op_code == arp.ARP_REPLY and arp_pkt.dst_ip == ip_attacker:
+              if arp_pkt.src_ip == ip_honeypot:
+                #print("QUI")
+                actions = [parser.OFPActionOutput(attacker_port)]
+                self.permit_arp(parser, arp_pkt, datapath, op_code, attacker_port)
 
+           if op_code == arp.ARP_REQUEST and arp_pkt.src_ip == ip_attacker:
+              if arp_pkt.dst_ip == ip_hosts1[2]:
+                actions = [parser.OFPActionOutput(ports1[2])]
+                self.permit_arp(parser, arp_pkt, datapath, op_code, ports1[2])
+
+           if op_code == arp.ARP_REPLY and arp_pkt.dst_ip == ip_attacker:
+              if arp_pkt.src_ip == ip_hosts1[2]:
+                #print("QUI")
+                actions = [parser.OFPActionOutput(attacker_port)]
+                self.permit_arp(parser, arp_pkt, datapath, op_code, attacker_port)
+           
+           out = parser.OFPPacketOut(datapath=datapath,
+                                    buffer_id=ofproto.OFP_NO_BUFFER,
+                                    in_port=in_port, actions=actions,
+                                    data=datap)
+           datapath.send_msg(out)
         
 
         # take icmp packet from insider attacker and redirects to honeypot.
@@ -156,12 +194,12 @@ class ExampleSwitch13(app_manager.RyuApp):
             actions = self.manage_udp(udp_pkt, pkt, parser, datapath, actions)
 
         # construct packet_out message and send it.
-        out = parser.OFPPacketOut(datapath=datapath,
+    '''   out = parser.OFPPacketOut(datapath=datapath,
                                 buffer_id=ofproto.OFP_NO_BUFFER,
                                 in_port=in_port, actions=actions,
                                 data=datap)
         datapath.send_msg(out)
-
+    '''
 
 
 # POLICIES
@@ -173,6 +211,10 @@ class ExampleSwitch13(app_manager.RyuApp):
         #self.logger.info(match)
         self.add_flow(datapath, 101, match, actions)
 
+    def permit_arp(self, parser, arp_pkt, datapath, op_code, out_port):
+        actions = [parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x0806, arp_op=op_code, arp_spa=arp_pkt.src_ip, arp_tpa=arp_pkt.dst_ip)
+        self.add_flow(datapath, 101, match, actions)
 
     '''def manage_arp(self, arp_pkt, parser, datapath, actions):
         # Host h11 è quello nascosto nella arp scan
