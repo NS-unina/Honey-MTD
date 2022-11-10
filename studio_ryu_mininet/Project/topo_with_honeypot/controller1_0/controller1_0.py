@@ -106,22 +106,23 @@ class ExampleSwitch13(app_manager.RyuApp):
         actions = [parser.OFPActionOutput(out_port)]
 
         # install a flow to avoid packet_in next time.
-        if out_port != ofproto.OFPP_FLOOD:
-            match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
-            self.add_flow(datapath, 1, match, actions)
+        #if out_port != ofproto.OFPP_FLOOD:
+        #    match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
+        #    self.add_flow(datapath, 1, match, actions)
 
         # take arp packet.
         arp_pkt = pkt.get_protocol(arp.arp)
         if arp_pkt:
            #self.logger.info("ARP")
+           op_code = arp_pkt.opcode
+           if op_code == arp.ARP_REQUEST and arp_pkt.src_ip == '10.0.1.10':
+              if arp_pkt.dst_ip == '10.0.1.11' : #or arp_pkt.dst_ip == '10.0.1.12':
+                 print(arp_pkt)
+                 self.drop_arp(parser, arp_pkt, datapath, op_code)
 
-           if arp_pkt.opcode == arp.ARP_REQUEST and arp_pkt.src_ip == '10.0.1.10':
-              if arp_pkt.dst_ip == '10.0.1.11' or arp_pkt.dst_ip == '10.0.1.12':
-                 self.drop_arp(parser, arp_pkt, datapath)
-
-           if arp_pkt.opcode == arp.ARP_REPLY and arp_pkt.dst_ip == '10.0.1.10':
-              if arp_pkt.src_ip == '10.0.1.11' or arp_pkt.src_ip == '10.0.1.12':
-                 self.drop_arp(parser, arp_pkt, datapath)          
+           if op_code == arp.ARP_REPLY and arp_pkt.dst_ip == '10.0.1.10':
+              if arp_pkt.src_ip == '10.0.1.11' : #or arp_pkt.src_ip == '10.0.1.12':
+                 self.drop_arp(parser, arp_pkt, datapath, op_code)          
 
            #if arp_pkt.opcode == arp.ARP_REQUEST and (arp_pkt.src_ip == '10.0.1.11' or arp_pkt.src_ip == '10.0.1.12'):
            #   if arp_pkt.dst_ip == '10.0.1.200':   
@@ -165,9 +166,9 @@ class ExampleSwitch13(app_manager.RyuApp):
 
 # POLICIES
 
-    def drop_arp(self, parser, arp_pkt, datapath):
+    def drop_arp(self, parser, arp_pkt, datapath, op_code):
         actions = []
-        match = parser.OFPMatch(eth_type=0x0806, arp_spa=arp_pkt.src_ip, arp_tpa=arp_pkt.dst_ip)
+        match = parser.OFPMatch(eth_type=0x0806, arp_op=op_code, arp_spa=arp_pkt.src_ip, arp_tpa=arp_pkt.dst_ip)
         #self.logger.info(actions)
         #self.logger.info(match)
         self.add_flow(datapath, 101, match, actions)
