@@ -137,19 +137,37 @@ class ExampleSwitch13(app_manager.RyuApp):
            #self.logger.info("ARP")
            op_code = arp_pkt.opcode
 
-           # Attacker shouldn't see host h11 
+           # Attacker
+           # Drop if destination is h11
            if op_code == arp.ARP_REQUEST and arp_pkt.src_ip == ip_attacker:
-              if arp_pkt.dst_ip == ip_hosts1[1] : #or arp_pkt.dst_ip == '10.0.1.12':
+              if arp_pkt.dst_ip == ip_hosts1[1]: 
                  #print(arp_pkt)
                  actions = []
                  self.drop_arp(parser, arp_pkt, datapath, op_code)
 
            if op_code == arp.ARP_REPLY and arp_pkt.dst_ip == ip_attacker:
-              if arp_pkt.src_ip == ip_hosts1[1] : #or arp_pkt.src_ip == '10.0.1.12':
+              if arp_pkt.src_ip == ip_hosts1[1]: 
                  actions = []
-                 self.drop_arp(parser, arp_pkt, datapath, op_code)          
+                 self.drop_arp(parser, arp_pkt, datapath, op_code)  
 
-           # Other hosts shouldn't see honeypot
+           # Redirect to honeypot if destination is h12       
+           '''if op_code == arp.ARP_REQUEST and arp_pkt.src_ip == ip_attacker:
+              if arp_pkt.dst_ip == ip_hosts1[2]:
+                 print(arp_pkt)
+                 actions = [parser.OFPActionSetField(arp_tpa='10.0.1.200'),
+                            parser.OFPActionOutput(honeypot_port)]
+                 self.redirect_arp(parser, arp_pkt, datapath, op_code, honeypot_port)
+            '''
+           # Permit if destination is honeypot
+           if op_code == arp.ARP_REQUEST and arp_pkt.src_ip == ip_attacker:
+              if arp_pkt.dst_ip == ip_honeypot:
+                 actions = [parser.OFPActionOutput(honeypot_port)]
+                 self.permit_arp(parser, arp_pkt, datapath, op_code, honeypot_port)
+              
+
+
+           # Other hosts 
+           # Drop if destination is honeypot
            if op_code == arp.ARP_REQUEST and (arp_pkt.src_ip == ip_hosts1[1] or arp_pkt.src_ip == ip_hosts1[2] or arp_pkt.src_ip == ip_hosts1[3]):
               if arp_pkt.dst_ip == ip_honeypot:
                  actions = []
@@ -162,28 +180,22 @@ class ExampleSwitch13(app_manager.RyuApp):
 
         
 
-        # take icmp packet from insider attacker and redirects to honeypot.
         
         if icmp_pkt:
            # self.logger.info("ICMP")
            ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
            print(icmp_pkt)
            print(ipv4_pkt)
-           # actions = self.manage_icmp(icmp_pkt, ipv4_pkt, eth_pkt, parser, datapath, actions)
-           
-           # Drops ICMP echo request from attacker to h11
+
+           # Attacker
+
+           # Drops ICMP echo request from attacker to h11 and h13
            if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == ip_attacker:
-              if ipv4_pkt.dst == ip_hosts1[1]:
+              if ipv4_pkt.dst == ip_hosts1[1] or ipv4_pkt.dst == ip_hosts1[3]:
                  actions = []
-                 self.drop_icmp(parser, ipv4_pkt, datapath)
-           
-           # Drops ICMP echo request from h11 and h12 to attacker
-           if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and (ipv4_pkt.src == ip_hosts1[1] or ipv4_pkt.src == ip_hosts1[2]):
-              if ipv4_pkt.dst == ip_attacker:
-                actions = []
-                self.drop_icmp(parser, ipv4_pkt, datapath, icmp.ICMP_ECHO_REQUEST)
-           
-           # Redirect to honeypot if echo request from attacker to h12
+                 self.drop_icmp(parser, ipv4_pkt, datapath, icmp.ICMP_ECHO_REQUEST)
+        
+           # Redirect to honeypot if echo request is from attacker to h12
            if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == ip_attacker:
               if ipv4_pkt.dst == ip_hosts1[2]:
                 actions = [parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
@@ -191,7 +203,25 @@ class ExampleSwitch13(app_manager.RyuApp):
                        parser.OFPActionOutput(honeypot_port)] 
                 self.redirect_icmp_echo_request(parser, ipv4_pkt, datapath, honeypot_port, icmp.ICMP_ECHO_REQUEST)
 
-            # Redirect to attacker if echo reply from honeypot
+           # Permit ICMP echo request from attacker to honeypot
+           if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == ip_attacker:
+               if ipv4_pkt.dst == ip_honeypot:
+                actions = [parser.OFPActionOutput(honeypot_port)]
+                self.permit_icmp(parser, ipv4_pkt, datapath, honeypot_port, icmp.ICMP_ECHO_REQUEST)
+
+
+           # Other hosts
+
+           # Drops ICMP echo request from h11, h12 and h13 to attacker
+           if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and (ipv4_pkt.src == ip_hosts1[1] or ipv4_pkt.src == ip_hosts1[2] or ipv4_pkt.src == ip_hosts1[3]):
+              if ipv4_pkt.dst == ip_attacker:
+                actions = []
+                self.drop_icmp(parser, ipv4_pkt, datapath, icmp.ICMP_ECHO_REQUEST)
+           
+          
+           # Honeypot
+
+           # Redirect to attacker every echo reply cames from from honeypot
            if icmp_pkt.type == icmp.ICMP_ECHO_REPLY and ipv4_pkt.src == ip_honeypot:
                if ipv4_pkt.dst == ip_attacker:
                  actions = [parser.OFPActionSetField(eth_dst='00:00:00:00:00:01'),
@@ -199,17 +229,19 @@ class ExampleSwitch13(app_manager.RyuApp):
                        parser.OFPActionOutput(attacker_port)] 
                  self.redirect_icmp_echo_reply(parser, ipv4_pkt, datapath, attacker_port, icmp.ICMP_ECHO_REPLY)
 
+          
 
 
         # tcp segment.
         
         if tcp_pkt:
-            # Host h13 scelto per simulazione TCP scan
+            
             self.logger.info("TCP")
-            # self.logger.info(tcp_pkt.dst_port)
+            self.logger.info(tcp_pkt)
             ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
             self.logger.info(ipv4_pkt)
-            # actions = self.manage_tcp(tcp_pkt, ipv4_pkt, parser, datapath, actions)
+            
+            
 
         # udp datagram.
         
@@ -242,6 +274,12 @@ class ExampleSwitch13(app_manager.RyuApp):
         match = parser.OFPMatch(eth_type=0x0806, arp_op=op_code, arp_spa=arp_pkt.src_ip, arp_tpa=arp_pkt.dst_ip)
         self.add_flow(datapath, 101, match, actions)
 
+    def redirect_arp(self, parser, arp_pkt, datapath, op_code, out_port):
+        actions = [parser.OFPActionSetField(arp_tpa='10.0.1.200'),
+                            parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x0806, arp_op=op_code, arp_spa=arp_pkt.src_ip, arp_tpa=arp_pkt.dst_ip)
+        self.add_flow(datapath, 101, match, actions)
+
     # ICMP
     def drop_icmp(self, parser, ipv4_pkt, datapath, type):
         actions = []
@@ -263,7 +301,10 @@ class ExampleSwitch13(app_manager.RyuApp):
         match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src, ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto, icmpv4_type=type)
         self.add_flow(datapath, 102, match, actions)
 
-
+    def permit_icmp(self, parser, ipv4_pkt, datapath, out_port, type):
+        actions = [parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src, ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto, icmpv4_type=type)
+        self.add_flow(datapath, 102, match, actions)
 
 
 

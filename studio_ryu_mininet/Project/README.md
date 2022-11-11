@@ -3,7 +3,7 @@
 
 # SkyTrap-MTD
 
-## Examples description
+## DA RISCRIVERE
 The folder *Project* includes two subfolders:
 
 - In **topo_with_honeypot** the topology file includes the honeypot as a simple host. The *attacker* is supposed to be the host h10 (IP: 10.0.1.10/24). The *honeypot* is the host h200 (IP: 10.0.1.200/24). In the attacker's subnet there are also two other hosts (h11 IP: 10.0.1.11/24; h12 IP: 10.0.1.12/24).
