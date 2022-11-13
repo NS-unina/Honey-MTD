@@ -186,15 +186,15 @@ class ExampleSwitch13(app_manager.RyuApp):
           
            # Attacker
 
-           # Drops ICMP echo request from attacker to h11 and h13
+           # Drops ICMP echo request from attacker to h11 and h12
            if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == ip_attacker:
-              if ipv4_pkt.dst == ip_hosts1[1] or ipv4_pkt.dst == ip_hosts1[3]:
+              if ipv4_pkt.dst == ip_hosts1[1] or ipv4_pkt.dst == ip_hosts1[2]:
                  actions = []
                  self.drop_icmp(parser, ipv4_pkt, datapath, icmp.ICMP_ECHO_REQUEST)
         
            # Redirect to honeypot if echo request is from attacker to h12
            if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == ip_attacker:
-              if ipv4_pkt.dst == ip_hosts1[2]:
+              if ipv4_pkt.dst == ip_hosts1[3]:
                 actions = [parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
                        parser.OFPActionSetField(ipv4_dst=ip_honeypot),
                        parser.OFPActionOutput(honeypot_port)] 
@@ -216,13 +216,14 @@ class ExampleSwitch13(app_manager.RyuApp):
                 self.drop_icmp(parser, ipv4_pkt, datapath, icmp.ICMP_ECHO_REQUEST)
            
           
+        
            # Honeypot
-
-           # Redirect to attacker every echo reply cames from from honeypot
+           # If response cames from honeypot to attacker(fagli credere che
+           # la risposta proviene da h12)
            if icmp_pkt.type == icmp.ICMP_ECHO_REPLY and ipv4_pkt.src == ip_honeypot:
                if ipv4_pkt.dst == ip_attacker:
-                 actions = [parser.OFPActionSetField(eth_dst='00:00:00:00:00:01'),
-                       parser.OFPActionSetField(ipv4_dst=ip_attacker),
+                 actions = [parser.OFPActionSetField(eth_src='00:00:00:00:00:03'),
+                       parser.OFPActionSetField(ipv4_src=ip_hosts1[3]),
                        parser.OFPActionOutput(attacker_port)] 
                  self.redirect_icmp_echo_reply(parser, ipv4_pkt, datapath, attacker_port, icmp.ICMP_ECHO_REPLY)
 
@@ -269,11 +270,42 @@ class ExampleSwitch13(app_manager.RyuApp):
 
         # udp datagram.
         
-        if udp_pkt:
-            #self.logger.info("UDP")
-            actions = self.manage_udp(udp_pkt, pkt, parser, datapath, actions)
-        
+        if udp_pkt and ipv4_pkt:
 
+            # Attacker
+            # Drop if destination is host h12
+            if ipv4_pkt.src == ip_attacker:
+               if ipv4_pkt.dst == ip_hosts1[2]:
+                  print(udp_pkt)
+                  actions = []
+                  self.drop_udp(parser, ipv4_pkt, udp_pkt, datapath)
+            
+            # Permit if destination is honeypot
+            if ipv4_pkt.src == ip_attacker:
+               if ipv4_pkt.dst == ip_honeypot:
+                  actions = [parser.OFPActionOutput(honeypot_port)]
+                  self.permit_udp(parser, ipv4_pkt, udp_pkt, datapath, honeypot_port)
+
+            # Redirect to port 53 of honeypot if destination is host h13
+            if ipv4_pkt.src == ip_attacker:
+               if ipv4_pkt.dst == ip_hosts1[3]:
+                  actions = [parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
+                             parser.OFPActionSetField(ipv4_dst=ip_honeypot),
+                             parser.OFPActionSetField(udp_dst=53),
+                             parser.OFPActionOutput(honeypot_port)]
+                  self.redirect_udp(parser, ipv4_pkt, udp_pkt, datapath, honeypot_port)
+            
+            # Honeypot
+            # If response cames from honeypot to attacker(fagli credere che
+            # la risposta proviene da h13)
+            if ipv4_pkt.src == ip_honeypot:
+               if ipv4_pkt.dst == ip_attacker:
+                  print("From honeypot to attacker")
+                  actions = [parser.OFPActionSetField(eth_src='00:00:00:00:00:03'),
+                             parser.OFPActionSetField(ipv4_src=ip_hosts1[3]),
+                             parser.OFPActionSetField(udp_src=123),
+                             parser.OFPActionOutput(attacker_port)]
+                  self.change_udp_src(parser, ipv4_pkt, udp_pkt, datapath, attacker_port)
 
 
         # construct packet_out message and send it.
@@ -310,7 +342,6 @@ class ExampleSwitch13(app_manager.RyuApp):
         match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src, ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto, icmpv4_type=type)
         self.add_flow(datapath, 102, match, actions)
 
-    # Si possono gestire meglio 
     def redirect_icmp_echo_request(self, parser, ipv4_pkt, datapath, out_port, type):
         actions = [parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
                        parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
@@ -319,9 +350,9 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.add_flow(datapath, 102, match, actions)
 
     def redirect_icmp_echo_reply(self, parser, ipv4_pkt, datapath, out_port, type):
-        actions = [parser.OFPActionSetField(eth_dst='00:00:00:00:00:01'),
-                       parser.OFPActionSetField(ipv4_dst='10.0.1.10'),
-                       parser.OFPActionOutput(out_port)]
+        actions = [parser.OFPActionSetField(eth_src='00:00:00:00:00:03'),
+                       parser.OFPActionSetField(ipv4_src='10.0.1.13'),
+                       parser.OFPActionOutput(out_port)] 
         match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src, ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto, icmpv4_type=type)
         self.add_flow(datapath, 102, match, actions)
 
@@ -359,22 +390,29 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.add_flow(datapath, 103, match, actions)
 
 
-
-
-    def manage_udp(self, udp_pkt, pkt, parser, datapath, actions):
-        if udp_pkt.dst_port == 123:
-            ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
-            self.logger.info(udp_pkt)
-            self.logger.info(ipv4_pkt)
+    # UDP
+    def drop_udp(self, parser, ipv4_pkt, udp_pkt, datapath):
+        actions = []
+        match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src, ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto)
+        self.add_flow(datapath, 104, match, actions)
     
-            if ipv4_pkt.src == '10.0.1.10' and ipv4_pkt.dst == '10.0.1.13':
-                    self.logger.info("NTP Request from the attacker")
-                    out_port = 7 
-                    actions = [parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
-                                parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
-                                parser.OFPActionSetField(udp_dst=53), 
-                                parser.OFPActionOutput(out_port)]
+    def permit_udp(self, parser, ipv4_pkt, udp_pkt, datapath, out_port):
+        actions = [parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src, ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto)
+        self.add_flow(datapath, 104, match, actions)
+    
+    def redirect_udp(self, parser, ipv4_pkt, udp_pkt, datapath, out_port):
+        actions = [parser.OFPActionSetField(eth_dst='00:00:00:00:00:09'),
+                   parser.OFPActionSetField(ipv4_dst='10.0.1.200'),
+                    parser.OFPActionSetField(udp_dst=53),
+                    parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src, ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto)
+        self.add_flow(datapath, 104, match, actions)
 
-                    match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, ipv4_src='10.0.1.10', ipv4_dst='10.0.1.13', ip_proto=17, udp_dst=123)
-                    self.add_flow(datapath, 100, match, actions)
-        return actions
+    def change_udp_src(self, parser, ipv4_pkt, udp_pkt, datapath, out_port):
+        actions = [parser.OFPActionSetField(eth_src='00:00:00:00:00:03'),
+                             parser.OFPActionSetField(ipv4_src='10.0.1.13'),
+                             parser.OFPActionSetField(udp_src=123),
+                             parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src, ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto)
+        self.add_flow(datapath, 104, match, actions)
