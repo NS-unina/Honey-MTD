@@ -179,8 +179,13 @@ class ExampleSwitch13(app_manager.RyuApp):
                  actions = []
                  self.drop_arp(parser, arp_pkt, datapath, op_code)
 
-        
-
+           # Permit if destination is another host in the subnet
+           if (op_code == arp.ARP_REQUEST or op_code == arp.ARP_REPLY) and (arp_pkt.src_ip == ip_hosts1[1] or arp_pkt.src_ip == ip_hosts1[2] or arp_pkt.src_ip == ip_hosts1[3]):
+              if (arp_pkt.dst_ip == ip_hosts1[1] or arp_pkt.dst_ip == ip_hosts1[2] or arp_pkt.dst_ip == ip_hosts1[3]):
+                 out_port = self.host_to_port(arp_pkt.dst_ip)
+                 #print(out_port)
+                 actions = [parser.OFPActionOutput(out_port)]
+                 self.permit_arp(parser, arp_pkt, datapath, op_code, out_port)
         
         if icmp_pkt:
           
@@ -215,7 +220,13 @@ class ExampleSwitch13(app_manager.RyuApp):
                 actions = []
                 self.drop_icmp(parser, ipv4_pkt, datapath, icmp.ICMP_ECHO_REQUEST)
            
-          
+           # Permit if destination is another host in the subnet
+           if (icmp_pkt.type == icmp.ICMP_ECHO_REQUEST or icmp_pkt.type == icmp.ICMP_ECHO_REPLY) and (ipv4_pkt.src == ip_hosts1[1] or ipv4_pkt.src == ip_hosts1[2] or ipv4_pkt.src == ip_hosts1[3]):
+              if (ipv4_pkt.dst == ip_hosts1[1] or ipv4_pkt.dst == ip_hosts1[2] or ipv4_pkt.dst == ip_hosts1[3]):
+                 out_port = self.host_to_port(ipv4_pkt.dst)
+                 #print(out_port)
+                 actions = [parser.OFPActionOutput(out_port)]
+                 self.permit_icmp(parser, ipv4_pkt, datapath, out_port, icmp.ICMP_ECHO_REQUEST)
         
            # Honeypot
            # If response cames from honeypot to attacker(fagli credere che
@@ -268,6 +279,14 @@ class ExampleSwitch13(app_manager.RyuApp):
                              parser.OFPActionOutput(attacker_port)]
                   self.change_tcp_src(parser, ipv4_pkt, tcp_pkt, datapath, tcp_pkt.src_port, attacker_port)
 
+            # Other hosts
+            # Permit comunications tra di loro
+            if ipv4_pkt.src == ip_hosts1[1] or ipv4_pkt.src == ip_hosts1[2] or ipv4_pkt.src == ip_hosts1[3]:
+              if ipv4_pkt.dst == ip_hosts1[1] or ipv4_pkt.dst == ip_hosts1[2] or ipv4_pkt.dst == ip_hosts1[3]:
+                 out_port = self.host_to_port(ipv4_pkt.dst)
+                 actions = [parser.OFPActionOutput(out_port)]
+                 self.permit_tcp(parser, ipv4_pkt, tcp_pkt, datapath, out_port)
+
         # udp datagram.
         
         if udp_pkt and ipv4_pkt:
@@ -306,6 +325,13 @@ class ExampleSwitch13(app_manager.RyuApp):
                              parser.OFPActionSetField(udp_src=123),
                              parser.OFPActionOutput(attacker_port)]
                   self.change_udp_src(parser, ipv4_pkt, udp_pkt, datapath, attacker_port)
+
+            # Other hosts
+            if ipv4_pkt.src == ip_hosts1[1] or ipv4_pkt.src == ip_hosts1[2] or ipv4_pkt.src == ip_hosts1[3]:
+              if ipv4_pkt.dst == ip_hosts1[1] or ipv4_pkt.dst == ip_hosts1[2] or ipv4_pkt.dst == ip_hosts1[3]:
+                 out_port = self.host_to_port(ipv4_pkt.dst)
+                 actions = [parser.OFPActionOutput(out_port)]
+                 self.permit_udp(parser, ipv4_pkt, udp_pkt, datapath, out_port)
 
 
         # construct packet_out message and send it.
@@ -416,3 +442,22 @@ class ExampleSwitch13(app_manager.RyuApp):
                              parser.OFPActionOutput(out_port)]
         match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src, ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto)
         self.add_flow(datapath, 104, match, actions)
+
+
+    #################################
+    def host_to_port(self, host_ip):
+        out_port = None
+        if host_ip == '10.0.1.10':
+           out_port = 1
+        if host_ip == '10.0.1.11':
+           out_port = 2
+        if host_ip == '10.0.1.12':
+           out_port = 3
+        if host_ip == '10.0.1.13':
+           out_port = 8
+        if host_ip == '10.0.1.200':
+           out_port = 7
+        return out_port
+              
+              
+            
