@@ -62,26 +62,27 @@ h10 arp-scan -l
 - *IP attacker* : 10.0.1.10/24
 - *IP honeypot* : 10.0.1.200/24
 
-```
 
 Rules:
 
-| Sender IP     | Receiver IP      | Type 	   | Action |
-| ------------- | -------------  | ------------       | ------ |
-| 10.0.1.10/24  | 10.0.1.11/24   | ECHO REQUEST       | DROP   |
-| 10.0.1.10/24  | 10.0.1.12/24   | ECHO REQUEST       | DROP   |
-| 10.0.1.10/24  | 10.0.1.13/24   | ECHO REQUEST       | REDIRECT |
-| 10.0.1.10/24  | 10.0.1.200/24  | ECHO REQUEST       | PERMIT |
-| 10.0.1.11/24  | 10.0.1.10/24   | ECHO REQUEST       | DROP   |
-| 10.0.1.12/24  | 10.0.1.10/24   | ECHO REQUEST       | DROP   |
-| 10.0.1.13/24  | 10.0.1.10/24   | ECHO REQUEST       | DROP   |
-| 10.0.1.200/24  | 10.0.1.10/24  | ECHO REPLY         | CHANGE SRC   |
-| 10.0.1.11/24  | 10.0.1.12/24   | ECHO REQUEST/REPLY | PERMIT |
-| 10.0.1.11/24  | 10.0.1.13/24   | ECHO REQUEST/REPLY | PERMIT |
-| 10.0.1.12/24  | 10.0.1.11/24   | ECHO REQUEST/REPLY | PERMIT |
-| 10.0.1.12/24  | 10.0.1.13/24   | ECHO REQUEST/REPLY | PERMIT |
-| 10.0.1.13/24  | 10.0.1.11/24   | ECHO REQUEST/REPLY | PERMIT |
-| 10.0.1.13/24  | 10.0.1.12/24   | ECHO REQUEST/REPLY | PERMIT
+```
+
+| Sender IP     | Receiver IP      | Type 	      | Action      |
+| ------------- | -------------  | ------------       | ------     |
+| 10.0.1.10/24  | 10.0.1.11/24   | ECHO REQUEST       | DROP       |
+| 10.0.1.10/24  | 10.0.1.12/24   | ECHO REQUEST       | DROP       |
+| 10.0.1.10/24  | 10.0.1.13/24   | ECHO REQUEST       | REDIRECT   |
+| 10.0.1.10/24  | 10.0.1.200/24  | ECHO REQUEST       | PERMIT     |
+| 10.0.1.11/24  | 10.0.1.10/24   | ECHO REQUEST       | DROP       |
+| 10.0.1.12/24  | 10.0.1.10/24   | ECHO REQUEST       | DROP       |
+| 10.0.1.13/24  | 10.0.1.10/24   | ECHO REQUEST       | DROP       |
+| 10.0.1.200/24 | 10.0.1.10/24   | ECHO REPLY         | CHANGE SRC |
+| 10.0.1.11/24  | 10.0.1.12/24   | ECHO REQUEST/REPLY | PERMIT     |
+| 10.0.1.11/24  | 10.0.1.13/24   | ECHO REQUEST/REPLY | PERMIT     |
+| 10.0.1.12/24  | 10.0.1.11/24   | ECHO REQUEST/REPLY | PERMIT     |
+| 10.0.1.12/24  | 10.0.1.13/24   | ECHO REQUEST/REPLY | PERMIT     |
+| 10.0.1.13/24  | 10.0.1.11/24   | ECHO REQUEST/REPLY | PERMIT     |
+| 10.0.1.13/24  | 10.0.1.12/24   | ECHO REQUEST/REPLY | PERMIT     |
 
 
 ```
@@ -93,11 +94,34 @@ h10 nmap -PE 10.0.1.0/24 --disable-arp-ping
 
 **TCP Scan**
 
-- Tabella con regole inserite per TCP
-- Esecuzione http server su honeypot e host h13 per simulazione redirection
+- *IP attacker* : 10.0.1.10/24
+- *IP honeypot* : 10.0.1.200/24
+
+
+Rules:
 
 ```
-h10 nmap -PS 10.0.1.0/24 --disable-arp-ping
+| Sender IP     | Receiver IP    | Type 		| Action     |
+| ------------- | -------------  | ------------       | ------     |
+| 10.0.1.10/24  | 10.0.1.12/24   |  ANY               | DROP       |
+| 10.0.1.10/24  | 10.0.1.200/24  |  ANY               | PERMIT     |
+| 10.0.1.10/24  | 10.0.1.13/24   |  ANY               | REDIRECT   |
+| 10.0.1.200/24 | 10.0.1.10/24   |  ANY               | CHANGE SRC |
+| 10.0.1.11/24  | 10.0.1.12/24   |  ANY               | PERMIT     |
+| 10.0.1.11/24  | 10.0.1.13/24   |  ANY               | PERMIT     |
+| 10.0.1.12/24  | 10.0.1.11/24   |  ANY               | PERMIT     |
+| 10.0.1.12/24  | 10.0.1.13/24   |  ANY               | PERMIT     |
+| 10.0.1.13/24  | 10.0.1.11/24   |  ANY               | PERMIT     |
+| 10.0.1.13/24  | 10.0.1.12/24   |  ANY               | PERMIT     |
+| 
+
+```
+
+- Esecuzione http server su honeypot e host h13 per simulazione redirection
+
+To make a TCP SYN/ACK scan in the subnet 10.0.1.0/24, insert this command in the attacker shell:
+```
+h10 nmap -PS/-PA 10.0.1.0/24 --disable-arp-ping
 ```
 **UDP Scan**
 
