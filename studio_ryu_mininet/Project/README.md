@@ -31,10 +31,12 @@ sudo mn -c
 
 Rules inserted:
 ```
-| Sender IP     | Target IP      | Type 		| Action |
+| Sender IP     | Target IP      | Type 	   | Action |
 | ------------- | -------------  | ------------       | ------ |
 | 10.0.1.10/24  | 10.0.1.11/24   | ARP REQUEST        | DROP   |
 | 10.0.1.10/24  | 10.0.1.200/24  | ARP REQUEST        | PERMIT |
+| 10.0.1.10/24  | 10.0.1.12/24   | ARP REQUEST        | PERMIT |
+| 10.0.1.10/24  | 10.0.1.13/24   | ARP REQUEST        | PERMIT |
 | 10.0.1.11/24  | 10.0.1.10/24   | ARP REPLY          | DROP   |
 | 10.0.1.11/24  | 10.0.1.200/24  | ARP REQUEST        | DROP   |
 | 10.0.1.12/24  | 10.0.1.200/24  | ARP REQUEST        | DROP   |
@@ -44,12 +46,13 @@ Rules inserted:
 | 10.0.1.12/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT |
 | 10.0.1.12/24  | 10.0.1.13/24   | ARP REQUEST/REPLY  | PERMIT |
 | 10.0.1.13/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT |
-| 10.0.1.13/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT
+| 10.0.1.13/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT |
 
 
 ```
 
 
+To make an ARP scan in the subnet 10.0.1.0/24, insert this command in the attacker shell:
 ```
 h10 arp-scan -l
 ```

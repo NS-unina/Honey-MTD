@@ -159,10 +159,11 @@ class ExampleSwitch13(app_manager.RyuApp):
                             parser.OFPActionOutput(honeypot_port)]
                  self.redirect_arp(parser, arp_pkt, datapath, op_code, honeypot_port)
             '''
-           # Permit if destination is honeypot
+           # Permit if destination is honeypot or host h12 or host h13
            if op_code == arp.ARP_REQUEST and arp_pkt.src_ip == ip_attacker:
-              if arp_pkt.dst_ip == ip_honeypot:
-                 actions = [parser.OFPActionOutput(honeypot_port)]
+              if (arp_pkt.dst_ip == ip_honeypot or arp_pkt.dst_ip == ip_hosts1[2] or arp_pkt.dst_ip == ip_hosts1[3]):
+                 out_port = self.host_to_port(arp_pkt.dst_ip)
+                 actions = [parser.OFPActionOutput(out_port)]
                  self.permit_arp(parser, arp_pkt, datapath, op_code, honeypot_port)
               
 
@@ -332,6 +333,7 @@ class ExampleSwitch13(app_manager.RyuApp):
                  out_port = self.host_to_port(ipv4_pkt.dst)
                  actions = [parser.OFPActionOutput(out_port)]
                  self.permit_udp(parser, ipv4_pkt, udp_pkt, datapath, out_port)
+
 
 
         # construct packet_out message and send it.
