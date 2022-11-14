@@ -164,7 +164,7 @@ class ExampleSwitch13(app_manager.RyuApp):
               if (arp_pkt.dst_ip == ip_honeypot or arp_pkt.dst_ip == ip_hosts1[2] or arp_pkt.dst_ip == ip_hosts1[3]):
                  out_port = self.host_to_port(arp_pkt.dst_ip)
                  actions = [parser.OFPActionOutput(out_port)]
-                 self.permit_arp(parser, arp_pkt, datapath, op_code, honeypot_port)
+                 self.permit_arp(parser, arp_pkt, datapath, op_code, out_port)
               
 
 

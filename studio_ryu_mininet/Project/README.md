@@ -117,7 +117,14 @@ Rules:
 
 ```
 
-- Esecuzione http server su honeypot e host h13 per simulazione redirection
+- Before, you can run the python SimpleHTTPServer on host h13 and on honeypot shell writing the following command line:
+
+```
+h13 python -m http.server 80 &
+
+h200 python -m http.server 8080 &
+```
+
 
 To make a TCP SYN/ACK scan in the subnet 10.0.1.0/24, insert this command in the attacker shell:
 ```
@@ -125,9 +132,31 @@ h10 nmap -PS/-PA 10.0.1.0/24 --disable-arp-ping
 ```
 **UDP Scan**
 
-- Tabella con regole inserite per UDP
+- *IP attacker* : 10.0.1.10/24
+- *IP honeypot* : 10.0.1.200/24
+
+Rules: 
+
+```
+| Sender IP     | Receiver IP    | Type 		      | Action     |
+| ------------- | -------------  | ------------       | ------     |
+| 10.0.1.10/24  | 10.0.1.12/24   |  ANY               | DROP       |
+| 10.0.1.10/24  | 10.0.1.200/24  |  ANY               | PERMIT     |
+| 10.0.1.10/24  | 10.0.1.13/24   |  ANY               | REDIRECT   |
+| 10.0.1.200/24 | 10.0.1.10/24   |  ANY               | CHANGE SRC |
+| 10.0.1.11/24  | 10.0.1.12/24   |  ANY               | PERMIT     |
+| 10.0.1.11/24  | 10.0.1.13/24   |  ANY               | PERMIT     |
+| 10.0.1.12/24  | 10.0.1.11/24   |  ANY               | PERMIT     |
+| 10.0.1.12/24  | 10.0.1.13/24   |  ANY               | PERMIT     |
+| 10.0.1.13/24  | 10.0.1.11/24   |  ANY               | PERMIT     |
+| 10.0.1.13/24  | 10.0.1.12/24   |  ANY               | PERMIT     |
+| 
+
+```
+
 - Esecuzione server udp su honeypot e host h13 per simulazione redirection
 
+To make a TCP SYN/ACK scan in the subnet 10.0.1.0/24, insert this command in the attacker shell:
 ```
 h10 nmap -PU 10.0.1.0/24 --disable-arp-ping --max-retries 0 --min-rate 5000
 ```
