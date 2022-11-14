@@ -89,7 +89,7 @@ Rules:
 
 To make a PING scan in the subnet 10.0.1.0/24, insert this command in the attacker shell:
 ```
-h10 nmap -PE 10.0.1.0/24 --disable-arp-ping
+h10 nmap -PE 10.0.1.0/24 
 ```
 
 **TCP Scan**
@@ -128,7 +128,7 @@ h200 python -m http.server 8080 &
 
 To make a TCP SYN/ACK scan in the subnet 10.0.1.0/24, insert this command in the attacker shell:
 ```
-h10 nmap -PS/-PA 10.0.1.0/24 --disable-arp-ping
+h10 nmap -PS/-PA 10.0.1.0/24 
 ```
 **UDP Scan**
 
@@ -158,7 +158,7 @@ Rules:
 
 To make a TCP SYN/ACK scan in the subnet 10.0.1.0/24, insert this command in the attacker shell:
 ```
-h10 nmap -PU 10.0.1.0/24 --disable-arp-ping --max-retries 0 --min-rate 5000
+h10 nmap -PU 10.0.1.0/24 --min-rate 5000
 ```
 
 - Flag inseriti per velocizzare UDP scan
