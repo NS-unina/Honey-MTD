@@ -34,7 +34,7 @@ Rules inserted:
 | Sender IP     | Target IP      | Type 	   | Action |
 | ------------- | -------------  | ------------       | ------ |
 | 10.0.1.10/24  | 10.0.1.11/24   | ARP REQUEST        | DROP   |
-| 10.0.1.10/24  | 10.0.1.200/24  | ARP REQUEST        | PERMIT |
+| 10.0.1.10/24  | 10.0.1.200/24  | ARP REQUEST        | DROP   |
 | 10.0.1.10/24  | 10.0.1.12/24   | ARP REQUEST        | PERMIT |
 | 10.0.1.10/24  | 10.0.1.13/24   | ARP REQUEST        | PERMIT |
 | 10.0.1.11/24  | 10.0.1.10/24   | ARP REPLY          | DROP   |
@@ -117,7 +117,7 @@ Rules:
 
 ```
 
-- Before, you can run the python SimpleHTTPServer on host h13 and on honeypot shell writing the following command line:
+Before, you can run the python SimpleHTTPServer on host h13 and on honeypot shell writing the following command line:
 
 ```
 h13 python -m http.server 80 &
@@ -155,13 +155,27 @@ Rules:
 ```
 
 - Esecuzione server udp su honeypot e host h13 per simulazione redirection
+Before, you can run the UDP server in the folder **udp_server** from host h13 and on honeypot shell writing the following command line:
+
+```
+h13 python ./udp_server/server.py --port 123 &
+
+h200 python ./udp_server/server.py --port 53 &
+```
 
 To make a TCP SYN/ACK scan in the subnet 10.0.1.0/24, insert this command in the attacker shell:
 ```
 h10 nmap -PU 10.0.1.0/24 --min-rate 5000
 ```
-
-- Flag inseriti per velocizzare UDP scan
+ You can also check the correct behaviour of UDP rules by executing the client from attacker shell. It 'll make a request against host h13 that will be redirected to honeypot:
+```
+h10 python ./udp_server/client.py --host h13 --port 123
+```
+Finally you can open the Flow Table of router *s_1* running this command from the command line:
+```
+sudo ovs-ofctl -O OpenFlow13 dump-flows s_1
+```
+In this table you can see all the rules inserted by controller.
 
 + In **topo_without_honeypot** the topology doesn't include the honeypot as an host. The controller simulates it making it visible only to the attacker, but it is not a real host. 
 The execution is the same of previous example.
