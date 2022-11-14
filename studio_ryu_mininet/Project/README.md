@@ -3,7 +3,7 @@
 
 # SkyTrap-MTD
 
-## DA RISCRIVERE
+## Policies
 The folder *Project* includes two subfolders:
 
 - In **topo_with_honeypot** the topology file includes the honeypot as a simple host. The *attacker* is supposed to be the host h10 (IP: 10.0.1.10/24). The *honeypot* is the host h200 (IP: 10.0.1.200/24). In the attacker's subnet there are also three other hosts (h11 IP: 10.0.1.11/24; h12 IP: 10.0.1.12/24; h13 IP: 10.0.1.13/24).
@@ -31,7 +31,7 @@ sudo mn -c
 
 Rules inserted:
 ```
-| Sender IP     | Target IP      | Type 		      | Action |
+| Sender IP     | Target IP      | Type 		| Action |
 | ------------- | -------------  | ------------       | ------ |
 | 10.0.1.10/24  | 10.0.1.11/24   | ARP REQUEST        | DROP   |
 | 10.0.1.10/24  | 10.0.1.200/24  | ARP REQUEST        | PERMIT |
