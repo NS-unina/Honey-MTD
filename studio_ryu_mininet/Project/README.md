@@ -46,7 +46,7 @@ Rules inserted:
 | 10.0.1.12/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT |
 | 10.0.1.12/24  | 10.0.1.13/24   | ARP REQUEST/REPLY  | PERMIT |
 | 10.0.1.13/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT |
-| 10.0.1.13/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT |
+| 10.0.1.13/24  | 10.0.1.12/24   | ARP REQUEST/REPLY  | PERMIT |
 
 
 ```
@@ -59,8 +59,34 @@ h10 arp-scan -l
 
 **Ping Scan**
 
-- Tabella con regole inserite per ICMP
+- *IP attacker* : 10.0.1.10/24
+- *IP honeypot* : 10.0.1.200/24
 
+```
+
+Rules:
+
+| Sender IP     | Receiver IP      | Type 	   | Action |
+| ------------- | -------------  | ------------       | ------ |
+| 10.0.1.10/24  | 10.0.1.11/24   | ECHO REQUEST       | DROP   |
+| 10.0.1.10/24  | 10.0.1.12/24   | ECHO REQUEST       | DROP   |
+| 10.0.1.10/24  | 10.0.1.13/24   | ECHO REQUEST       | REDIRECT |
+| 10.0.1.10/24  | 10.0.1.200/24  | ECHO REQUEST       | PERMIT |
+| 10.0.1.11/24  | 10.0.1.10/24   | ECHO REQUEST       | DROP   |
+| 10.0.1.12/24  | 10.0.1.10/24   | ECHO REQUEST       | DROP   |
+| 10.0.1.13/24  | 10.0.1.10/24   | ECHO REQUEST       | DROP   |
+| 10.0.1.200/24  | 10.0.1.10/24  | ECHO REPLY         | CHANGE SRC   |
+| 10.0.1.11/24  | 10.0.1.12/24   | ECHO REQUEST/REPLY | PERMIT |
+| 10.0.1.11/24  | 10.0.1.13/24   | ECHO REQUEST/REPLY | PERMIT |
+| 10.0.1.12/24  | 10.0.1.11/24   | ECHO REQUEST/REPLY | PERMIT |
+| 10.0.1.12/24  | 10.0.1.13/24   | ECHO REQUEST/REPLY | PERMIT |
+| 10.0.1.13/24  | 10.0.1.11/24   | ECHO REQUEST/REPLY | PERMIT |
+| 10.0.1.13/24  | 10.0.1.12/24   | ECHO REQUEST/REPLY | PERMIT
+
+
+```
+
+To make a PING scan in the subnet 10.0.1.0/24, insert this command in the attacker shell:
 ```
 h10 nmap -PE 10.0.1.0/24 --disable-arp-ping
 ```
