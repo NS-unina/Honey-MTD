@@ -26,7 +26,28 @@ sudo mn -c
 
 **Arp-Scan**
 
-- Tabella con regole inserite
+- *IP attacker* : 10.0.1.10/24
+- *IP honeypot* : 10.0.1.200/24
+
+Rules inserted:
+```
+| Sender IP     | Target IP      | Type 		      | Action |
+| ------------- | -------------  | ------------       | ------ |
+| 10.0.1.10/24  | 10.0.1.11/24   | ARP REQUEST        | DROP   |
+| 10.0.1.10/24  | 10.0.1.200/24  | ARP REQUEST        | PERMIT |
+| 10.0.1.11/24  | 10.0.1.10/24   | ARP REPLY          | DROP   |
+| 10.0.1.11/24  | 10.0.1.200/24  | ARP REQUEST        | DROP   |
+| 10.0.1.12/24  | 10.0.1.200/24  | ARP REQUEST        | DROP   |
+| 10.0.1.13/24  | 10.0.1.200/24  | ARP REQUEST        | DROP   |
+| 10.0.1.11/24  | 10.0.1.12/24   | ARP REQUEST/REPLY  | PERMIT |
+| 10.0.1.11/24  | 10.0.1.13/24   | ARP REQUEST/REPLY  | PERMIT |
+| 10.0.1.12/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT |
+| 10.0.1.12/24  | 10.0.1.13/24   | ARP REQUEST/REPLY  | PERMIT |
+| 10.0.1.13/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT |
+| 10.0.1.13/24  | 10.0.1.11/24   | ARP REQUEST/REPLY  | PERMIT
+
+
+```
 
 
 ```
