@@ -63,7 +63,7 @@ class Service(Node):
     def set_port(self, p):
         self.port = p
         
-class Target(Node):
+class Attacker(Node):
     def __init__(self, name=None, ip_addr=None, MAC=None, gateway_port=0, netmask=None, network=None):
         super().__init__(name, ip_addr, MAC, gateway_port, netmask)
         self.network = network
