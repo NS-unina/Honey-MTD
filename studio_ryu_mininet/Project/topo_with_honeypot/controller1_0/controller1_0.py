@@ -261,14 +261,17 @@ class ExampleSwitch13(app_manager.RyuApp):
             # Redirect to port 8080 of honeypot if destination of SYN or ACK is host h13
             if ipv4_pkt.src == attacker.get_ip_addr():
                 if ipv4_pkt.dst == h13.get_ip_addr():
-                    actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
-                               parser.OFPActionSetField(
-                                   ipv4_dst=honeypot.get_ip_addr()),
-                               parser.OFPActionSetField(tcp_dst=8080),
-                               parser.OFPActionOutput(honeypot.get_gateway_port())]
-                    self.redirect_tcp(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(
-                    ), honeypot.get_MAC_addr(), honeypot.get_ip_addr())
-
+                    if tcp_pkt.dst_port == 80:
+                        actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
+                                parser.OFPActionSetField(
+                                    ipv4_dst=honeypot.get_ip_addr()),
+                                parser.OFPActionSetField(tcp_dst=80),
+                                parser.OFPActionOutput(honeypot.get_gateway_port())]
+                        self.redirect_tcp(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(), honeypot.get_MAC_addr(), honeypot.get_ip_addr(), tcp_pkt.dst_port)
+                    '''else:
+                        actions = []
+                        self.drop_tcp(parser, ipv4_pkt, datapath)
+                    '''
             # Honeypot
             # If response cames from honeypot to attacker(fagli credere che
             # la risposta proviene da h13 e quindi la porta 80 di h13 risulta essere open)
@@ -311,14 +314,17 @@ class ExampleSwitch13(app_manager.RyuApp):
             # Redirect to port 53 of honeypot if destination is host h13
             if ipv4_pkt.src == attacker.get_ip_addr():
                 if ipv4_pkt.dst == h13.get_ip_addr():
-                    actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
-                               parser.OFPActionSetField(
-                                   ipv4_dst=honeypot.get_ip_addr()),
-                               parser.OFPActionSetField(udp_dst=53),
-                               parser.OFPActionOutput(honeypot.get_gateway_port())]
-                    self.redirect_udp(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(
-                    ), honeypot.get_MAC_addr(), honeypot.get_ip_addr())
-
+                    if udp_pkt.dst_port == 123:
+                        actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
+                                parser.OFPActionSetField(
+                                    ipv4_dst=honeypot.get_ip_addr()),
+                                parser.OFPActionSetField(udp_dst=123),
+                                parser.OFPActionOutput(honeypot.get_gateway_port())]
+                        self.redirect_udp(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(), honeypot.get_MAC_addr(), honeypot.get_ip_addr(), udp_pkt.dst_port)
+                    '''else:
+                        actions = []
+                        self.drop_udp(parser, ipv4_pkt, datapath)
+                    '''
             # Honeypot
             # If response cames from honeypot to attacker(fagli credere che
             # la risposta proviene da h13)
@@ -425,14 +431,14 @@ class ExampleSwitch13(app_manager.RyuApp):
                                 ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto)
         self.add_flow(datapath, 103, match, actions)
 
-    def redirect_tcp(self, parser, ipv4_pkt, datapath, out_port, mac_honeypot, ip_honeypot):
+    def redirect_tcp(self, parser, ipv4_pkt, datapath, out_port, mac_honeypot, ip_honeypot, tcp_dst_port):
         '''redirect_tcp'''
         actions = [parser.OFPActionSetField(eth_dst=mac_honeypot),
                    parser.OFPActionSetField(ipv4_dst=ip_honeypot),
-                   parser.OFPActionSetField(tcp_dst=8080),
+                   parser.OFPActionSetField(tcp_dst=80),
                    parser.OFPActionOutput(out_port)]
         match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src,
-                                ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto)
+                                ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto, tcp_dst=tcp_dst_port)
         self.add_flow(datapath, 103, match, actions)
 
     def change_tcp_src(self, parser, ipv4_pkt, datapath, out_port, mac_host, ip_host):
@@ -461,14 +467,14 @@ class ExampleSwitch13(app_manager.RyuApp):
                                 ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto)
         self.add_flow(datapath, 104, match, actions)
 
-    def redirect_udp(self, parser, ipv4_pkt, datapath, out_port, mac_honeypot, ip_honeypot):
+    def redirect_udp(self, parser, ipv4_pkt, datapath, out_port, mac_honeypot, ip_honeypot, udp_dst_port):
         '''redirect_udp'''
         actions = [parser.OFPActionSetField(eth_dst=mac_honeypot),
                    parser.OFPActionSetField(ipv4_dst=ip_honeypot),
-                   parser.OFPActionSetField(udp_dst=53),
+                   parser.OFPActionSetField(udp_dst=123),
                    parser.OFPActionOutput(out_port)]
         match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src,
-                                ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto)
+                                ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto, udp_dst=udp_dst_port)
         self.add_flow(datapath, 104, match, actions)
 
     def change_udp_src(self, parser, ipv4_pkt, datapath, out_port, mac_host, ip_host):
