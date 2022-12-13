@@ -10,5 +10,5 @@ class Utils():
             ip = v.get_ip_addr()
             if ip == host_ip:
                out_port = k
-        return str(out_port)
+        return out_port
               
