@@ -106,13 +106,13 @@ class ExampleSwitch13(app_manager.RyuApp):
 
 # -----------------------------------------------------------------------#
         attacker = Attacker("h10", '200.0.0.201',
-                            'ea:2e:83:d0:2a:bf', 6, '255.255.255.0')
+                            '00:00:00:00:00:04', 6, '255.255.255.0')
         honeypot = Honeypot("h200", '200.0.0.200',
-                            'de:c7:1d:61:92:f9', 7, '255.255.255.0', 'LI')
+                            '00:00:00:00:00:05', 7, '255.255.255.0', 'LI')
 
-        h11 = Host("h11", '200.0.0.101', 'da:11:a8:3b:b8:5d', 2, '255.255.255.0')
-        h12 = Host("h12", '200.0.0.102', 'f6:ee:81:58:62:73', 4, '255.255.255.0')
-        h13 = Host("h13", '200.0.0.103', '5e:a2:b9:d3:73:69', 5, '255.255.255.0')
+        h11 = Host("h11", '200.0.0.101', '00:00:00:00:00:01', 2, '255.255.255.0')
+        h12 = Host("h12", '200.0.0.102', '00:00:00:00:00:02', 4, '255.255.255.0')
+        h13 = Host("h13", '200.0.0.103', '00:00:00:00:00:03', 5, '255.255.255.0')
 
         #h20 = Host("h20", '10.0.2.20', '00:00:00:00:00:04', 4, '255.255.255.0')
 
@@ -139,6 +139,7 @@ class ExampleSwitch13(app_manager.RyuApp):
         udp_pkt = pkt.get_protocol(udp.udp)
         ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
 
+        
         if arp_pkt:
             op_code = arp_pkt.opcode
             # Attacker
@@ -187,164 +188,162 @@ class ExampleSwitch13(app_manager.RyuApp):
                     self.permit_arp(parser, arp_pkt, datapath,
                                     op_code, out_port)
         
-        # if icmp_pkt:
+        if icmp_pkt:
 
-        #    # Attacker
-        #    # Drops ICMP echo request from attacker to h11 and h12
-        #     if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == attacker.get_ip_addr():
-        #         if ipv4_pkt.dst == h11.get_ip_addr() or ipv4_pkt.dst == h12.get_ip_addr():
-        #             actions = []
-        #             self.drop_icmp(parser, ipv4_pkt, datapath, icmp_pkt.type)
+           # Attacker
+           # Drops ICMP echo request from attacker to h11 and h12
+            if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == attacker.get_ip_addr():
+                if ipv4_pkt.dst == h11.get_ip_addr() or ipv4_pkt.dst == h12.get_ip_addr():
+                    actions = []
+                    self.drop_icmp(parser, ipv4_pkt, datapath, icmp_pkt.type)
 
-        #    # Redirect to honeypot if echo request is from attacker to h13
-        #     if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == attacker.get_ip_addr():
-        #         if ipv4_pkt.dst == h13.get_ip_addr():
-        #             actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
-        #                        parser.OFPActionSetField(
-        #                            ipv4_dst=honeypot.get_ip_addr()),
-        #                        parser.OFPActionOutput(honeypot.get_gateway_port())]
-        #             self.redirect_icmp_echo_request(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(
-        #             ), honeypot.get_MAC_addr(), honeypot.get_ip_addr(), icmp_pkt.type)
+           # Redirect to honeypot if echo request is from attacker to h13
+            if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == attacker.get_ip_addr():
+                if ipv4_pkt.dst == h13.get_ip_addr():
+                    self.logger.info("Mi è arrivato 1")
+                    actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
+                               parser.OFPActionSetField(
+                                   ipv4_dst=honeypot.get_ip_addr()),
+                               parser.OFPActionOutput(honeypot.get_gateway_port())]
+                    self.redirect_icmp_echo_request(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(
+                    ), honeypot.get_MAC_addr(), honeypot.get_ip_addr(), icmp_pkt.type)
 
-        #    # Permit ICMP echo request from attacker to honeypot
-        #     if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == attacker.get_ip_addr():
-        #         if ipv4_pkt.dst == honeypot.get_ip_addr():
-        #             actions = [parser.OFPActionOutput(
-        #                 honeypot.get_gateway_port())]
-        #             self.permit_icmp(parser, ipv4_pkt, datapath,
-        #                              honeypot.get_gateway_port(), icmp_pkt.type)
+           # Permit ICMP echo request from attacker to honeypot
+            if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and ipv4_pkt.src == attacker.get_ip_addr():
+                if ipv4_pkt.dst == honeypot.get_ip_addr():
+                    actions = [parser.OFPActionOutput(
+                        honeypot.get_gateway_port())]
+                    self.permit_icmp(parser, ipv4_pkt, datapath,
+                                     honeypot.get_gateway_port(), icmp_pkt.type)
 
-        #    # Other hosts
-        #    # Drops ICMP echo request from h11, h12 and h13 to attacker
-        #     if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and (ipv4_pkt.src == h11.get_ip_addr() or ipv4_pkt.src == h12.get_ip_addr() or ipv4_pkt.src == h13.get_ip_addr()):
-        #         if ipv4_pkt.dst == attacker.get_ip_addr():
-        #             actions = []
-        #             self.drop_icmp(parser, ipv4_pkt, datapath, icmp_pkt.type)
+           # Other hosts
+           # Drops ICMP echo request from h11, h12 and h13 to attacker
+            if icmp_pkt.type == icmp.ICMP_ECHO_REQUEST and (ipv4_pkt.src == h11.get_ip_addr() or ipv4_pkt.src == h12.get_ip_addr() or ipv4_pkt.src == h13.get_ip_addr()):
+                if ipv4_pkt.dst == attacker.get_ip_addr():
+                    actions = []
+                    self.drop_icmp(parser, ipv4_pkt, datapath, icmp_pkt.type)
 
-        #    # Permit if destination is another host in the subnet
-        #     if (icmp_pkt.type == icmp.ICMP_ECHO_REQUEST or icmp_pkt.type == icmp.ICMP_ECHO_REPLY) and (ipv4_pkt.src == h11.get_ip_addr() or ipv4_pkt.src == h12.get_ip_addr() or ipv4_pkt.src == h13.get_ip_addr()):
-        #         if (ipv4_pkt.dst == h11.get_ip_addr() or ipv4_pkt.dst == h12.get_ip_addr() or ipv4_pkt.dst == h13.get_ip_addr()):
-        #             out_port = u.host_to_port(subnet1, ipv4_pkt.dst)
-        #             actions = [parser.OFPActionOutput(out_port)]
-        #             self.permit_icmp(parser, ipv4_pkt, datapath,
-        #                              out_port, icmp_pkt.type)
+           # Permit if destination is another host in the subnet
+            if (icmp_pkt.type == icmp.ICMP_ECHO_REQUEST or icmp_pkt.type == icmp.ICMP_ECHO_REPLY) and (ipv4_pkt.src == h11.get_ip_addr() or ipv4_pkt.src == h12.get_ip_addr() or ipv4_pkt.src == h13.get_ip_addr()):
+                if (ipv4_pkt.dst == h11.get_ip_addr() or ipv4_pkt.dst == h12.get_ip_addr() or ipv4_pkt.dst == h13.get_ip_addr()):
+                    out_port = u.host_to_port(subnet1, ipv4_pkt.dst)
+                    actions = [parser.OFPActionOutput(out_port)]
+                    self.permit_icmp(parser, ipv4_pkt, datapath,
+                                     out_port, icmp_pkt.type)
 
-        #    # Honeypot
-        #    # If response cames from honeypot to attacker(fagli credere che
-        #    # la risposta proviene da h12)
-        #     if icmp_pkt.type == icmp.ICMP_ECHO_REPLY and ipv4_pkt.src == honeypot.get_ip_addr():
-        #         if ipv4_pkt.dst == attacker.get_ip_addr():
-        #             actions = [parser.OFPActionSetField(eth_src=h13.get_MAC_addr()),
-        #                        parser.OFPActionSetField(
-        #                            ipv4_src=h13.get_ip_addr()),
-        #                        parser.OFPActionOutput(attacker.get_gateway_port())]
-        #             self.change_icmp_src(parser, ipv4_pkt, datapath, attacker.get_gateway_port(
-        #             ),  h13.get_MAC_addr(), h13.get_ip_addr(), icmp_pkt.type)
+           # Honeypot
+           # If response cames from honeypot to attacker(fagli credere che
+           # la risposta proviene da h13)
+            if icmp_pkt.type == icmp.ICMP_ECHO_REPLY and ipv4_pkt.src == honeypot.get_ip_addr():
+                if ipv4_pkt.dst == attacker.get_ip_addr():
+                    self.logger.info("Mi è arrivata la reply")
+                    actions = [parser.OFPActionSetField(eth_src=h13.get_MAC_addr()),
+                               parser.OFPActionSetField(
+                                   ipv4_src=h13.get_ip_addr()),
+                               parser.OFPActionOutput(attacker.get_gateway_port())]
+                    self.change_icmp_src(parser, ipv4_pkt, datapath, attacker.get_gateway_port(
+                    ),  h13.get_MAC_addr(), h13.get_ip_addr(), icmp_pkt.type)
 
-        # if tcp_pkt:
+        if tcp_pkt:
 
-        #     # Attacker
-        #     # Drop if destination of SYN or ACK is host h12
-        #     if ipv4_pkt.src == attacker.get_ip_addr():
-        #         if ipv4_pkt.dst == h12.get_ip_addr():
-        #             actions = []
-        #             self.drop_tcp(parser, ipv4_pkt, datapath)
+            # Attacker
+            # Drop if destination of SYN or ACK is host h12
+            if ipv4_pkt.src == attacker.get_ip_addr():
+                if ipv4_pkt.dst == h12.get_ip_addr():
+                    actions = []
+                    self.drop_tcp(parser, ipv4_pkt, datapath)
 
-        #     # Permit if destination of SYN or ACK is honeypot
-        #     if ipv4_pkt.src == attacker.get_ip_addr():
-        #         if ipv4_pkt.dst == honeypot.get_ip_addr():
-        #             actions = [parser.OFPActionOutput(
-        #                 honeypot.get_gateway_port())]
-        #             self.permit_tcp(parser, ipv4_pkt,
-        #                             datapath, honeypot.get_gateway_port())
+            # Permit if destination of SYN or ACK is honeypot
+            if ipv4_pkt.src == attacker.get_ip_addr():
+                if ipv4_pkt.dst == honeypot.get_ip_addr():
+                    actions = [parser.OFPActionOutput(
+                        honeypot.get_gateway_port())]
+                    self.permit_tcp(parser, ipv4_pkt,
+                                    datapath, honeypot.get_gateway_port())
 
-        #     # Redirect to port 8080 of honeypot if destination of SYN or ACK is host h13
-        #     if ipv4_pkt.src == attacker.get_ip_addr():
-        #         if ipv4_pkt.dst == h13.get_ip_addr():
-        #             if tcp_pkt.dst_port == 80:
-        #                 actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
-        #                         parser.OFPActionSetField(
-        #                             ipv4_dst=honeypot.get_ip_addr()),
-        #                         parser.OFPActionSetField(tcp_dst=80),
-        #                         parser.OFPActionOutput(honeypot.get_gateway_port())]
-        #                 self.redirect_tcp(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(), honeypot.get_MAC_addr(), honeypot.get_ip_addr(), tcp_pkt.dst_port)
-        #             else:
-        #                 actions = []
-        #                 self.drop_tcp(parser, ipv4_pkt, datapath)
+            # Redirect to port 8080 of honeypot if destination of SYN or ACK is host h13
+            if ipv4_pkt.src == attacker.get_ip_addr():
+                if ipv4_pkt.dst == h13.get_ip_addr():
+                    if tcp_pkt.dst_port == 80:
+                        actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
+                                parser.OFPActionSetField(
+                                    ipv4_dst=honeypot.get_ip_addr()),
+                                parser.OFPActionSetField(tcp_dst=80),
+                                parser.OFPActionOutput(honeypot.get_gateway_port())]
+                        self.redirect_tcp(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(), honeypot.get_MAC_addr(), honeypot.get_ip_addr(), tcp_pkt.dst_port)
+          
                     
-        #     # Honeypot
-        #     # If response cames from honeypot to attacker(fagli credere che
-        #     # la risposta proviene da h13 e quindi la porta 80 di h13 risulta essere open)
-        #     if ipv4_pkt.src == honeypot.get_ip_addr():
-        #         if ipv4_pkt.dst == attacker.get_ip_addr():
-        #             actions = [parser.OFPActionSetField(eth_src=h13.get_MAC_addr()),
-        #                        parser.OFPActionSetField(
-        #                            ipv4_src=h13.get_ip_addr()),
-        #                        parser.OFPActionSetField(tcp_src=80),
-        #                        parser.OFPActionOutput(attacker.get_gateway_port())]
-        #             self.change_tcp_src(parser, ipv4_pkt, datapath,
-        #                                 attacker.get_gateway_port(), h13.get_MAC_addr(), h13.get_ip_addr())
+            # Honeypot
+            # If response cames from honeypot to attacker(fagli credere che
+            # la risposta proviene da h13 e quindi la porta 80 di h13 risulta essere open)
+            if ipv4_pkt.src == honeypot.get_ip_addr():
+                if ipv4_pkt.dst == attacker.get_ip_addr():
+                    actions = [parser.OFPActionSetField(eth_src=h13.get_MAC_addr()),
+                               parser.OFPActionSetField(
+                                   ipv4_src=h13.get_ip_addr()),
+                               parser.OFPActionSetField(tcp_src=80),
+                               parser.OFPActionOutput(attacker.get_gateway_port())]
+                    self.change_tcp_src(parser, ipv4_pkt, datapath,
+                                        attacker.get_gateway_port(), h13.get_MAC_addr(), h13.get_ip_addr())
 
-        #     # Other hosts
-        #     # Permit comunications tra di loro
-        #     if ipv4_pkt.src == h11.get_ip_addr() or ipv4_pkt.src == h12.get_ip_addr() or ipv4_pkt.src == h13.get_ip_addr():
-        #         if ipv4_pkt.dst == h11.get_ip_addr() or ipv4_pkt.dst == h12.get_ip_addr() or ipv4_pkt.dst == h13.get_ip_addr():
-        #             out_port = u.host_to_port(subnet1, ipv4_pkt.dst)
-        #             actions = [parser.OFPActionOutput(out_port)]
-        #             self.permit_tcp(parser, ipv4_pkt,
-        #                             datapath, out_port)
+            # Other hosts
+            # Permit comunications tra di loro
+            if ipv4_pkt.src == h11.get_ip_addr() or ipv4_pkt.src == h12.get_ip_addr() or ipv4_pkt.src == h13.get_ip_addr():
+                if ipv4_pkt.dst == h11.get_ip_addr() or ipv4_pkt.dst == h12.get_ip_addr() or ipv4_pkt.dst == h13.get_ip_addr():
+                    out_port = u.host_to_port(subnet1, ipv4_pkt.dst)
+                    actions = [parser.OFPActionOutput(out_port)]
+                    self.permit_tcp(parser, ipv4_pkt,
+                                    datapath, out_port)
 
-        # if udp_pkt and ipv4_pkt:
+        if udp_pkt and ipv4_pkt:
 
-        #     # Attacker
-        #     # Drop if destination is host h12
-        #     if ipv4_pkt.src == attacker.get_ip_addr():
-        #         if ipv4_pkt.dst == h12.get_ip_addr():
-        #             actions = []
-        #             self.drop_udp(parser, ipv4_pkt, datapath)
+            # Attacker
+            # Drop if destination is host h12
+            if ipv4_pkt.src == attacker.get_ip_addr():
+                if ipv4_pkt.dst == h12.get_ip_addr():
+                    actions = []
+                    self.drop_udp(parser, ipv4_pkt, datapath)
 
-        #     # Permit if destination is honeypot
-        #     if ipv4_pkt.src == attacker.get_ip_addr():
-        #         if ipv4_pkt.dst == honeypot.get_ip_addr():
-        #             actions = [parser.OFPActionOutput(
-        #                 honeypot.get_gateway_port())]
-        #             self.permit_udp(parser, ipv4_pkt,
-        #                             datapath, honeypot.get_gateway_port())
+            # Permit if destination is honeypot
+            if ipv4_pkt.src == attacker.get_ip_addr():
+                if ipv4_pkt.dst == honeypot.get_ip_addr():
+                    actions = [parser.OFPActionOutput(
+                        honeypot.get_gateway_port())]
+                    self.permit_udp(parser, ipv4_pkt,
+                                    datapath, honeypot.get_gateway_port())
 
-        #     # Redirect to port 53 of honeypot if destination is host h13
-        #     if ipv4_pkt.src == attacker.get_ip_addr():
-        #         if ipv4_pkt.dst == h13.get_ip_addr():
-        #             if udp_pkt.dst_port == 123:
-        #                 actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
-        #                         parser.OFPActionSetField(
-        #                             ipv4_dst=honeypot.get_ip_addr()),
-        #                         parser.OFPActionSetField(udp_dst=123),
-        #                         parser.OFPActionOutput(honeypot.get_gateway_port())]
-        #                 self.redirect_udp(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(), honeypot.get_MAC_addr(), honeypot.get_ip_addr(), udp_pkt.dst_port)
-        #             else:
-        #                 actions = []
-        #                 self.drop_udp(parser, ipv4_pkt, datapath)
+            # Redirect to port 53 of honeypot if destination is host h13
+            if ipv4_pkt.src == attacker.get_ip_addr():
+                if ipv4_pkt.dst == h13.get_ip_addr():
+                    if udp_pkt.dst_port == 123:
+                        actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
+                                parser.OFPActionSetField(
+                                    ipv4_dst=honeypot.get_ip_addr()),
+                                parser.OFPActionSetField(udp_dst=123),
+                                parser.OFPActionOutput(honeypot.get_gateway_port())]
+                        self.redirect_udp(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(), honeypot.get_MAC_addr(), honeypot.get_ip_addr(), udp_pkt.dst_port)
+                  
                     
-        #     # Honeypot
-        #     # If response cames from honeypot to attacker(fagli credere che
-        #     # la risposta proviene da h13)
-        #     if ipv4_pkt.src == honeypot.get_ip_addr():
-        #         if ipv4_pkt.dst == attacker.get_ip_addr():
-        #             actions = [parser.OFPActionSetField(eth_src=h13.get_MAC_addr()),
-        #                        parser.OFPActionSetField(
-        #                            ipv4_src=h13.get_ip_addr()),
-        #                        parser.OFPActionSetField(udp_src=123),
-        #                        parser.OFPActionOutput(attacker.get_gateway_port())]
-        #             self.change_udp_src(parser, ipv4_pkt, datapath, attacker.get_gateway_port(
-        #             ), h13.get_MAC_addr(), h13.get_ip_addr())
+            # Honeypot
+            # If response cames from honeypot to attacker(fagli credere che
+            # la risposta proviene da h13)
+            if ipv4_pkt.src == honeypot.get_ip_addr():
+                if ipv4_pkt.dst == attacker.get_ip_addr():
+                    actions = [parser.OFPActionSetField(eth_src=h13.get_MAC_addr()),
+                               parser.OFPActionSetField(
+                                   ipv4_src=h13.get_ip_addr()),
+                               parser.OFPActionSetField(udp_src=123),
+                               parser.OFPActionOutput(attacker.get_gateway_port())]
+                    self.change_udp_src(parser, ipv4_pkt, datapath, attacker.get_gateway_port(
+                    ), h13.get_MAC_addr(), h13.get_ip_addr())
 
-        #     # Other hosts
-        #     if ipv4_pkt.src == h11.get_ip_addr() or ipv4_pkt.src == h12.get_ip_addr() or ipv4_pkt.src == h13.get_ip_addr():
-        #         if ipv4_pkt.dst == h11.get_ip_addr() or ipv4_pkt.dst == h12.get_ip_addr() or ipv4_pkt.dst == h13.get_ip_addr():
-        #             out_port = u.host_to_port(subnet1, ipv4_pkt.dst)
-        #             actions = [parser.OFPActionOutput(out_port)]
-        #             self.permit_udp(parser, ipv4_pkt,
-        #                             datapath, out_port)
+            # Other hosts
+            if ipv4_pkt.src == h11.get_ip_addr() or ipv4_pkt.src == h12.get_ip_addr() or ipv4_pkt.src == h13.get_ip_addr():
+                if ipv4_pkt.dst == h11.get_ip_addr() or ipv4_pkt.dst == h12.get_ip_addr() or ipv4_pkt.dst == h13.get_ip_addr():
+                    out_port = u.host_to_port(subnet1, ipv4_pkt.dst)
+                    actions = [parser.OFPActionOutput(out_port)]
+                    self.permit_udp(parser, ipv4_pkt,
+                                    datapath, out_port)
         
         # construct packet_out message and send it.
         out = parser.OFPPacketOut(datapath=datapath,
