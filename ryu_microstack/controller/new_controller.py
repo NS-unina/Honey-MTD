@@ -268,7 +268,7 @@ class ExampleSwitch13(app_manager.RyuApp):
                         actions = [parser.OFPActionSetField(eth_dst=honeypot.get_MAC_addr()),
                                 parser.OFPActionSetField(
                                     ipv4_dst=honeypot.get_ip_addr()),
-                                parser.OFPActionSetField(tcp_dst=80),
+                                parser.OFPActionSetField(tcp_dst=22),
                                 parser.OFPActionOutput(honeypot.get_gateway_port())]
                         self.redirect_tcp(parser, ipv4_pkt, datapath, honeypot.get_gateway_port(), honeypot.get_MAC_addr(), honeypot.get_ip_addr(), tcp_pkt.dst_port)
           
@@ -436,7 +436,7 @@ class ExampleSwitch13(app_manager.RyuApp):
         '''redirect_tcp'''
         actions = [parser.OFPActionSetField(eth_dst=mac_honeypot),
                    parser.OFPActionSetField(ipv4_dst=ip_honeypot),
-                   parser.OFPActionSetField(tcp_dst=80),
+                   parser.OFPActionSetField(tcp_dst=22),
                    parser.OFPActionOutput(out_port)]
         match = parser.OFPMatch(eth_type=0x800, ipv4_src=ipv4_pkt.src,
                                 ipv4_dst=ipv4_pkt.dst, ip_proto=ipv4_pkt.proto, tcp_dst=tcp_dst_port)
