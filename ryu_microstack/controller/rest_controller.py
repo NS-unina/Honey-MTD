@@ -17,6 +17,7 @@ class RestController(new_controller.ExampleSwitch13):
 
     def __init__(self, *args, **kwargs):
         super(RestController, self).__init__(*args, **kwargs)
+        self.switches = {}
         wsgi = kwargs['wsgi']
         wsgi.register(SimpleSwitchController,
                       {name: self})
@@ -26,7 +27,19 @@ class RestController(new_controller.ExampleSwitch13):
     def switch_features_handler(self, ev):
         super(RestController, self).switch_features_handler(ev)
         datapath = ev.msg.datapath
+        self.switches[datapath.id] = datapath
         self.mac_to_port.setdefault(datapath.id, {})
+    
+    def drop(self, src_ip):
+        '''drop'''
+        datapath = self.switches.get(112935451091276)   #dpid - it 'll be passed from request
+        parser = datapath.ofproto_parser
+        actions = []
+        match = parser.OFPMatch(
+            eth_type=0x0800, ipv4_src=src_ip)
+        # self.logger.info(actions)
+        # self.logger.info(match)
+        self.add_flow(datapath, 10001, match, actions)
 
 class SimpleSwitchController(ControllerBase):
     def __init__(self, req, link, data, **config):
@@ -36,13 +49,17 @@ class SimpleSwitchController(ControllerBase):
     @route('restswitch', '/rest_controller/insert_rule', methods=['POST'])
     def insert_rule(self, req, **kwargs):
         richiesta = req.json
+        simple_switch = self.simple_switch_app
         print(richiesta)
         if richiesta:
             actions = richiesta['actions']
             values = actions[0]
-            print(values['type'])
+            t = values['type']
+            match = richiesta['match']
+            src = match['nw_src']
+            if t == 'DROP':
+                simple_switch.drop(src)
             return Response(status=200)
-            
         else:
             return Response(status=400)
 
