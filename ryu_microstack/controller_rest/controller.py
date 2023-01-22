@@ -30,7 +30,7 @@ from ryu.lib.packet import tcp, icmp, arp
 # Nodes
 host = Host('host', '192.168.2.10', '00:00:00:00:00:03', 3, '255.255.255.0')
 heralding = Honeypot('heralding', '192.168.2.40', '00:00:00:00:00:05', 5, '255.255.255.0')
-cowrie = Honeypot('cowrie', '192.168.4.20', '00:00:00:00:00:02', 2, '255.255.255.0')
+cowrie = Honeypot('cowrie', '192.168.2.20', '00:00:00:00:00:02', 2, '255.255.255.0')
 elk = Host('ELK', '192.168.3.30', '00:00:00:00:00:06', 6, '255.255.255.0')
 
 # Subnets
@@ -82,9 +82,22 @@ class ExampleSwitch13(app_manager.RyuApp):
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
                                              actions)]
         mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
-                                match=match, instructions=inst)
+                                match=match, instructions=inst, idle_timeout=0, 
+                                hard_timeout=0)
         datapath.send_msg(mod)
-    
+
+    def add_flow_with_idle(self, datapath, priority, match, actions):
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+
+        # construct flow_mod message and send it.
+        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
+                                                actions)]
+        mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
+                                match=match, instructions=inst, idle_timeout=10, 
+                                hard_timeout=30)
+        datapath.send_msg(mod)
+
     def del_flow(self, datapath, src):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
@@ -120,16 +133,6 @@ class ExampleSwitch13(app_manager.RyuApp):
         icmp_pkt = pkt.get_protocol(icmp.icmp)
         tcp_pkt = pkt.get_protocol(tcp.tcp)
 
-        if arp_pkt:
-            print("ARP")
-            print(pkt)
-        elif icmp_pkt:
-            print("ICMP")
-            print(pkt)
-        elif tcp_pkt:
-            print("TCP")
-            print(pkt)
-
         # get the received port number from packet_in message.
         in_port = msg.match['in_port']
 
@@ -151,7 +154,15 @@ class ExampleSwitch13(app_manager.RyuApp):
         # install a flow to avoid packet_in next time.
         if out_port != ofproto.OFPP_FLOOD:
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
-            self.add_flow(datapath, 1, match, actions)
+            self.add_flow_with_idle(datapath, 1, match, actions)
+
+        # hide cowrie to all hosts in the subnet
+        if arp_pkt:
+            op_code = arp_pkt.opcode
+            src_ip = arp_pkt.src_ip
+            if src_ip == cowrie.get_ip_addr() and op_code == arp.ARP_REPLY:
+                actions = []
+                self.drop_arp(parser, arp_pkt, datapath, op_code)
 
         # construct packet_out message and send it.
         out = parser.OFPPacketOut(datapath=datapath,
@@ -159,3 +170,12 @@ class ExampleSwitch13(app_manager.RyuApp):
                                   in_port=in_port, actions=actions,
                                   data=msg.data)
         datapath.send_msg(out)
+
+    def drop_arp(self, parser, arp_pkt, datapath, op_code):
+            '''drop_arp'''
+            actions = []
+            match = parser.OFPMatch(
+                eth_type=0x0806, arp_op=op_code, arp_spa=arp_pkt.src_ip, arp_tpa=arp_pkt.dst_ip)
+            # self.logger.info(actions)
+            # self.logger.info(match)
+            self.add_flow(datapath, 101, match, actions)

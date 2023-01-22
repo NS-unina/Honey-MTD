@@ -11,9 +11,10 @@ from ryu.lib.packet import arp
 from network import Host, Honeypot, Subnet, Network
 from utils import Utils as u
 
-
 name = 'rest_controller'
 url = '/rest_controller/insert'
+sub = '192.168.2.'
+ips = []
 
 # ------- NETWORK TOPOLPOGY -------------------------------------------------------------- #
         
@@ -63,25 +64,24 @@ class RestController(ExampleSwitch13):
         self.mac_to_port.setdefault(datapath.id, {})
     
     # Policies
-    # def drop_arp_req(self, dpid, src_ip):
-    #     '''drop_arp_req'''
-    #     datapath = self.switches.get(dpid)   #dpid - it 'll be passed from request
-    #     parser = datapath.ofproto_parser
-    #     actions = []
-    #     match = parser.OFPMatch(
-    #         eth_type=0x0806, arp_op=arp.ARP_REQUEST, arp_spa=src_ip)
-    #     # self.logger.info(actions)
-    #     # self.logger.info(match)
-    #     self.add_flow(datapath, 10001, match, actions)
+    def drop_arp_req(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)   
+        parser = datapath.ofproto_parser
+        actions = []
+        match = parser.OFPMatch(eth_type=0x0806, arp_op=arp.ARP_REQUEST, 
+                                arp_spa=src_ip)
+        self.add_flow(datapath, 10001, match, actions)
     
-    # def arp_ip_obfuscation(self, dpid, src_ip):
-    #     datapath = self.switches.get(dpid)
-    #     parser = datapath.ofproto_parser
-    #     actions = [parser.OFPActionSetField(arp_spa='192.168.2.50'),
-    #                parser.OFPActionOutput(3)]
-    #     match = parser.OFPMatch(eth_type=0x0806, arp_op=arp.ARP_REPLY, 
-    #                             arp_spa='192.168.2.40', arp_tpa=src_ip)
-    #     self.add_flow(datapath, 10002, match, actions)
+    def change_host_src(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        new_ip = u.make_new_IP(ips, sub)
+        out_port = u.host_to_port(subnet1, src_ip)
+        actions = [parser.OFPActionSetField(arp_spa=new_ip),
+                   parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x0806, arp_op=arp.ARP_REPLY, 
+                                arp_spa=heralding.get_ip_addr(), arp_tpa=src_ip)
+        self.add_flow(datapath, 10002, match, actions)
     
     def del_prev_rules(self, dpid, mac):
         datapath = self.switches.get(dpid)
@@ -132,8 +132,9 @@ class SimpleSwitchController(ControllerBase):
             mac = u.host_to_mac(subnet1, src)
 
             simple_switch.del_prev_rules(dpid, mac)
-            simple_switch.redirect_to_cowrie(dpid, src)
-            simple_switch.change_cowrie_src(dpid, src)
+            #simple_switch.redirect_to_cowrie(dpid, src)
+            #simple_switch.change_cowrie_src(dpid, src)
+            simple_switch.change_host_src(dpid, src)
 
             return Response(status=200)
         else:

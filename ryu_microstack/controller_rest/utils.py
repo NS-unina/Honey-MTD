@@ -1,4 +1,5 @@
 from network import Subnet
+import random
 
 class Utils():
 
@@ -21,3 +22,14 @@ class Utils():
             if ip == host_ip:
                 mac = v.get_MAC_addr()
         return mac
+    
+    @staticmethod
+    def make_new_IP(ips, sub):
+        while(True):
+            if len(ips) == 251:
+                ips.clear()
+            new_ip = sub + str(random.randint(2, 253))
+            if new_ip not in ips:
+                ips.append(new_ip)
+                break
+        return new_ip
