@@ -92,10 +92,86 @@ class ExampleSwitch13(app_manager.RyuApp):
         match = parser.OFPMatch()
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
                                           ofproto.OFPCML_NO_BUFFER)]
-        self.send_set_async(datapath)
+        #self.send_set_async(datapath)
         self.add_flow(datapath, 0, match, actions, 0)
         self.add_default_rules(datapath)
 
+    @set_ev_cls(ofp_event.EventOFPFlowRemoved, MAIN_DISPATCHER)
+    def flow_removed_handler(self, ev):
+        msg = ev.msg
+        datapath = msg.datapath
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+
+        if msg.cookie == 4:
+            values = msg.match.items()
+            print(values)
+            ipv4_dst = values[1][1]
+            port_dst = values[3][1]
+            self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
+        
+            self.port = ports[random.randint(0, 4)]
+            self.redirect_protocol_syn(parser, datapath, self.port)
+            self.change_heralding_src_protocol(parser, datapath, self.port)
+    
+    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
+    def _packet_in_handler(self, ev):
+        msg = ev.msg
+        datapath = msg.datapath
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+        # get Datapath ID to identify OpenFlow switches.
+        dpid = datapath.id
+        #print(dpid)
+        self.mac_to_port.setdefault(dpid, {})
+
+        # analyse the received packets using the packet library.
+        pkt = packet.Packet(msg.data)
+        
+        eth_pkt = pkt.get_protocol(ethernet.ethernet)
+        dst = eth_pkt.dst
+        vlan_pkt = pkt.get_protocol(vlan.vlan)
+        arp_pkt = pkt.get_protocol(arp.arp)
+        tcp_pkt = pkt.get_protocol(tcp.tcp)
+        ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
+        # get the received port number from packet_in message.
+        in_port = msg.match['in_port']
+        out_port = ofproto.OFPP_FLOOD
+
+        if dst == host.get_MAC_addr():
+            out_port = host.get_ovs_port()
+        elif dst == service.get_MAC_addr():
+            out_port = service.get_ovs_port()
+        elif dst == heralding.get_MAC_addr():
+            out_port = heralding.get_ovs_port()
+        elif dst == gw1.get_MAC_addr():
+            out_port = gw1.get_ovs_port()
+        elif dst == cowrie.get_MAC_addr():
+            out_port = cowrie.get_ovs_port()
+        elif dst == gw2.get_MAC_addr():
+            out_port = gw2.get_ovs_port()
+        elif dst == elk.get_MAC_addr():
+            out_port = elk.get_ovs_port()
+        elif dst == gw3.get_MAC_addr():
+            out_port = gw3.get_ovs_port()
+
+
+        actions = [parser.OFPActionOutput(out_port)]
+
+        # install a flow to avoid packet_in next time.
+        if out_port != ofproto.OFPP_FLOOD:
+            match = parser.OFPMatch(eth_dst=dst)
+            self.add_flow(datapath, 1, match, actions, 0)
+
+        # construct packet_out message and send it.
+        out = parser.OFPPacketOut(datapath=datapath,
+                                  buffer_id=ofproto.OFP_NO_BUFFER,
+                                  in_port=in_port, actions=actions,
+                                  data=msg.data)
+        datapath.send_msg(out)
+
+
+    # UTILITY FUNCTIONS
     def add_flow(self, datapath, priority, match, actions, cookie):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
@@ -223,9 +299,9 @@ class ExampleSwitch13(app_manager.RyuApp):
         # # PERMIT level2 traffico thorugh vlan2
         # self.permit_eth_dstMAC(parser, gw2.get_MAC_addr(), gw2.get_ovs_port(), datapath)
 
+        # MTD PROACTIVE PORT SHUFFLING
         self.redirect_protocol_syn(parser, datapath, self.port)
         self.change_heralding_src_protocol(parser, datapath, self.port)
-
 
     def send_set_async(self, datapath):
         ofp = datapath.ofproto
@@ -245,85 +321,6 @@ class ExampleSwitch13(app_manager.RyuApp):
                                     [port_status_mask, port_status_mask],
                                     [flow_removed_mask, flow_removed_mask])
         datapath.send_msg(req)
-
-    @set_ev_cls(ofp_event.EventOFPFlowRemoved, MAIN_DISPATCHER)
-    def flow_removed_handler(self, ev):
-        msg = ev.msg
-        datapath = msg.datapath
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
-
-        if msg.cookie == 4:
-            values = msg.match.items()
-            print(values)
-            ipv4_dst = values[1][1]
-            port_dst = values[3][1]
-            self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
-        
-            self.port = ports[random.randint(0, 4)]
-            self.redirect_protocol_syn(parser, datapath, self.port)
-            self.change_heralding_src_protocol(parser, datapath, self.port)
-
-        
-
-
-    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
-    def _packet_in_handler(self, ev):
-        msg = ev.msg
-        datapath = msg.datapath
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
-        # get Datapath ID to identify OpenFlow switches.
-        dpid = datapath.id
-        #print(dpid)
-        self.mac_to_port.setdefault(dpid, {})
-
-        # analyse the received packets using the packet library.
-        pkt = packet.Packet(msg.data)
-        
-        eth_pkt = pkt.get_protocol(ethernet.ethernet)
-        dst = eth_pkt.dst
-        vlan_pkt = pkt.get_protocol(vlan.vlan)
-        arp_pkt = pkt.get_protocol(arp.arp)
-        tcp_pkt = pkt.get_protocol(tcp.tcp)
-        ipv4_pkt = pkt.get_protocol(ipv4.ipv4)
-        # get the received port number from packet_in message.
-        in_port = msg.match['in_port']
-        out_port = ofproto.OFPP_FLOOD
-
-        if dst == host.get_MAC_addr():
-            out_port = host.get_ovs_port()
-        elif dst == service.get_MAC_addr():
-            out_port = service.get_ovs_port()
-        elif dst == heralding.get_MAC_addr():
-            out_port = heralding.get_ovs_port()
-        elif dst == gw1.get_MAC_addr():
-            out_port = gw1.get_ovs_port()
-        elif dst == cowrie.get_MAC_addr():
-            out_port = cowrie.get_ovs_port()
-        elif dst == gw2.get_MAC_addr():
-            out_port = gw2.get_ovs_port()
-        elif dst == elk.get_MAC_addr():
-            out_port = elk.get_ovs_port()
-        elif dst == gw3.get_MAC_addr():
-            out_port = gw3.get_ovs_port()
-
-
-        actions = [parser.OFPActionOutput(out_port)]
-
-        # install a flow to avoid packet_in next time.
-        if out_port != ofproto.OFPP_FLOOD:
-            match = parser.OFPMatch(eth_dst=dst)
-            self.add_flow(datapath, 1, match, actions, 0)
-
-        # construct packet_out message and send it.
-        out = parser.OFPPacketOut(datapath=datapath,
-                                  buffer_id=ofproto.OFP_NO_BUFFER,
-                                  in_port=in_port, actions=actions,
-                                  data=msg.data)
-        datapath.send_msg(out)
-
-        
 
     def permit_eth_dstMAC(self, parser, eth_dst, ovs_port_dest, datapath):
         actions = [parser.OFPActionOutput(ovs_port_dest)]
@@ -370,7 +367,6 @@ class ExampleSwitch13(app_manager.RyuApp):
         actions = []
         match = parser.OFPMatch(eth_type=0x800, ipv4_dst=ipv4_dst, tcp_dst=port_dest, ip_proto=6)
         self.add_flow(datapath, 200, match, actions, 0)
-
 
     # PROACTIVE MTD PORT HOPPING
     def redirect_protocol_syn(self, parser, datapath, port):  
