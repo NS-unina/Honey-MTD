@@ -20,7 +20,7 @@ ips = []
 
 # ------- NETWORK TOPOLPOGY -------------------------------------------------------------- #    
 # Nodes
-host = Host('host', '192.168.3.10', '08:00:27:b6:d0:66', 12, '255.255.255.0')
+host = Host('host', '192.168.3.10', '08:00:27:b6:d0:66', 15, '255.255.255.0')
 service = Host('service', '192.168.3.11', '08:00:27:29:bd:84', 3, '255.255.255.0')
 heralding = Honeypot('heralding', '192.168.3.12', '08:00:27:0b:8b:8e', 4, '255.255.255.0')
 
@@ -28,9 +28,11 @@ cowrie = Honeypot('cowrie', '192.168.4.10', '08:00:27:e5:e1:01', 6, '255.255.255
 heralding1 = Honeypot('heralding1', '192.168.4.11', '08:00:27:f4:0c:20', 13, '255.255.255.0')
 
 elk_if1 = Host('ELK_IF1', '192.168.5.10', '08:00:27:b4:ad:5c', 8, '255.255.255.0')
-elk_if2 = Host('ELK_IF2', '192.168.11.10', '08:00:27:13:25:57', 9, '255.255.255.0')
+elk_if2 = Host('ELK_IF2', '192.168.11.10', '08:00:27:13:25:57', 13, '255.255.255.0')
 
-dmz_service = Host('dmz_service', '192.168.10.10', '08:00:27:9f:12:16', 2, '255.255.255.0')
+dmz_heralding = Honeypot('dmz_heralding', '192.168.10.10', '08:00:27:9f:12:16', 2, '255.255.255.0')
+dmz_service = Host('dmz_service', '192.168.10.11', '08:00:27:b6:d0:67', 22, '255.255.255.0')
+dmz_host = Host('dmz_host', '192.168.10.12', '08:00:27:b6:d0:68', 23, '255.255.255.0')
 
 # Subnets
 # ovs1
@@ -70,6 +72,8 @@ subnet3.add_node(gw3, gw3.get_ovs_port())
 
 #ovs2
 subnet4.add_node(dmz_service, dmz_service.get_ovs_port())
+subnet4.add_node(dmz_heralding, dmz_heralding.get_ovs_port())
+subnet4.add_node(dmz_host, dmz_host.get_ovs_port())
 subnet4.add_node(gw10, gw10.get_ovs_port())
 
 subnet5.add_node(elk_if2, elk_if2.get_ovs_port())
@@ -86,8 +90,8 @@ network2.add_subnet(subnet5)
 
 ports = [23, 5432, 143, 5900, 3306]
 
-br0_dpid = '101737510984148'
-br1_dpid = '116735924579658'
+br0_dpid = 85884017520972
+br1_dpid = 101737510984148
 
 # -------------------------------------------------------------------------------------- #
 
@@ -335,6 +339,29 @@ class RestController(ExampleSwitch13):
     #                            ip_proto=6, tcp_dst=self.port)
     #     self.add_flow(datapath, 1000, match, actions, 0)
 
+    # REDIRECTION TO HERALDING FOR DMZ HOST (SERVICE SSH, PORT 22)
+    def redirect_to_heralding_ssh(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        src_mac = u.host_to_mac(subnet1, src_ip)
+        actions = [parser.OFPActionSetField(eth_dst=gw10.get_MAC_addr()),
+                   parser.OFPActionSetField(ipv4_dst=heralding1.get_ip_addr()),
+                   parser.OFPActionOutput(gw10.get_ovs_port())]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip,
+                                ipv4_dst=dmz_service.get_ip_addr(), ip_proto=6, tcp_dst=22)              
+        self.add_flow(datapath, 1000, match, actions, 1)
+    
+    def change_heralding_src_ssh(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        out_port = u.host_to_port(subnet4, src_ip)
+        actions = [parser.OFPActionSetField(ipv4_src=dmz_service.get_ip_addr()),
+                   parser.OFPActionSetField(eth_src=dmz_service.get_MAC_addr()),
+                   parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=heralding1.get_ip_addr(), ipv4_dst=src_ip, 
+                                eth_src=gw10.get_MAC_addr(), ip_proto=6, tcp_src=22)                
+        self.add_flow(datapath, 1000, match, actions, 1)
+
 class SimpleSwitchController(ControllerBase):
     def __init__(self, req, link, data, **config):
         super(SimpleSwitchController, self).__init__(req, link, data, **config)
@@ -409,6 +436,22 @@ class SimpleSwitchController(ControllerBase):
             #simple_switch.change_http_port(dpid, src_IP)
             #simple_switch.drop_pop3_rst(dpid, src_IP)
             #simple_switch.send_to_controller(dpid, src_IP)
+            return Response(status=200)
+        else:
+            return Response(status=400)
+    
+    @route('restswitch', '/rest_controller/redirect_to_heralding_dmz_ssh', methods=['POST'])
+    def redirect_to_heralding_dmz_ssh(self, req, **kwargs):
+        richiesta = req.json
+        simple_switch = self.simple_switch_app
+
+        if richiesta:
+            print(richiesta)
+            dpid = richiesta['Dpid']
+            src_IP = richiesta['Source_IP']
+            dpid = int(dpid) 
+            simple_switch.redirect_to_heralding_ssh(dpid, src_IP)
+            simple_switch.change_heralding_src_ssh(dpid, src_IP)
             return Response(status=200)
         else:
             return Response(status=400)

@@ -27,7 +27,7 @@ import random
 
 # ------- NETWORK TOPOLPOGY -------------------------------------------------------------- #    
 # Nodes
-host = Host('host', '192.168.3.10', '08:00:27:b6:d0:66', 12, '255.255.255.0')
+host = Host('host', '192.168.3.10', '08:00:27:b6:d0:66', 15, '255.255.255.0')
 service = Host('service', '192.168.3.11', '08:00:27:29:bd:84', 3, '255.255.255.0')
 heralding = Honeypot('heralding', '192.168.3.12', '08:00:27:0b:8b:8e', 4, '255.255.255.0')
 
@@ -35,9 +35,11 @@ cowrie = Honeypot('cowrie', '192.168.4.10', '08:00:27:e5:e1:01', 6, '255.255.255
 heralding1 = Honeypot('heralding1', '192.168.4.11', '08:00:27:f4:0c:20', 13, '255.255.255.0')
 
 elk_if1 = Host('ELK_IF1', '192.168.5.10', '08:00:27:b4:ad:5c', 8, '255.255.255.0')
-elk_if2 = Host('ELK_IF2', '192.168.11.10', '08:00:27:13:25:57', 9, '255.255.255.0')
+elk_if2 = Host('ELK_IF2', '192.168.11.10', '08:00:27:13:25:57', 13, '255.255.255.0')
 
-dmz_service = Host('dmz_service', '192.168.10.10', '08:00:27:9f:12:16', 2, '255.255.255.0')
+dmz_heralding = Honeypot('dmz_heralding', '192.168.10.10', '08:00:27:9f:12:16', 2, '255.255.255.0')
+dmz_service = Host('dmz_service', '192.168.10.11', '08:00:27:b6:d0:67', 22, '255.255.255.0')
+dmz_host = Host('dmz_host', '192.168.10.12', '08:00:27:b6:d0:68', 23, '255.255.255.0')
 
 # Subnets
 # ovs1
@@ -77,6 +79,8 @@ subnet3.add_node(gw3, gw3.get_ovs_port())
 
 #ovs2
 subnet4.add_node(dmz_service, dmz_service.get_ovs_port())
+subnet4.add_node(dmz_heralding, dmz_heralding.get_ovs_port())
+subnet4.add_node(dmz_host, dmz_host.get_ovs_port())
 subnet4.add_node(gw10, gw10.get_ovs_port())
 
 subnet5.add_node(elk_if2, elk_if2.get_ovs_port())
@@ -216,6 +220,10 @@ class ExampleSwitch13(app_manager.RyuApp):
         if dpid == br1_dpid:
             if dst == dmz_service.get_MAC_addr():
                 out_port = dmz_service.get_ovs_port()
+            elif dst == dmz_heralding.get_MAC_addr():
+                out_port = dmz_heralding.get_ovs_port()
+            elif dst == dmz_host.get_MAC_addr():
+                out_port = dmz_host.get_ovs_port()
             elif dst == gw10.get_MAC_addr():
                 out_port = gw10.get_ovs_port()
             elif dst == elk_if2.get_MAC_addr():
@@ -359,7 +367,8 @@ class ExampleSwitch13(app_manager.RyuApp):
         # PERMIT tcp input from gateway and elk to heralding
         self.permit_tcp_host1_host2(parser, gw1.get_ip_addr(), heralding.get_ip_addr(), heralding.get_ovs_port(), datapath)
         self.permit_tcp_host1_host2(parser, elk_if1.get_ip_addr(), heralding.get_ip_addr(), heralding.get_ovs_port(), datapath)
-   
+        self.permit_tcp_host1_host2(parser, elk_if1.get_ip_addr(), dmz_heralding.get_ip_addr(), dmz_heralding.get_ovs_port(), datapath)
+
         # PERMIT tcp input to heralding port 25
         self.permit_tcp_dstIP_dstPORT(parser, heralding.get_ip_addr(), heralding.get_ovs_port(), 25, datapath)
 
@@ -388,13 +397,13 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.drop_icmp_srcIP_srcPORT_dstIP(parser, gw11.get_ip_addr(), 4, '192.168.11.100', datapath)
         self.drop_tcp_srcIP_srcPORT_dstIP(parser, gw11.get_ip_addr(), 4, '192.168.11.100', datapath)
 
-        self.drop_icmp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 2, '192.168.11.100', datapath)
-        self.drop_tcp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 2, '192.168.11.100', datapath)
+        self.drop_icmp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 22, '192.168.11.100', datapath)
+        self.drop_tcp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 22, '192.168.11.100', datapath)
 
         self.drop_icmp_host1_host2(parser, host.get_ip_addr(), elk_if2.get_ip_addr(), datapath)
         self.drop_tcp_host1_host2(parser, host.get_ip_addr(), elk_if2.get_ip_addr(), datapath)
-        self.drop_icmp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 2, elk_if2.get_ip_addr(), datapath)
-        self.drop_tcp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 2, elk_if2.get_ip_addr(), datapath)
+        self.drop_icmp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 22, elk_if2.get_ip_addr(), datapath)
+        self.drop_tcp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 22, elk_if2.get_ip_addr(), datapath)
 
 
     def send_set_async(self, datapath):
