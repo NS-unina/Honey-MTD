@@ -95,6 +95,31 @@ br1_dpid = 101737510984148
 
 # -------------------------------------------------------------------------------------- #
 
+## THREAT INTELLIGENCE SUBNET MANAGEMENT
+
+# indexes
+COWRIE_INDEX = 0
+HERALDING_INDEX = 1
+SSH_INDEX = 0
+TELNET_INDEX= 1
+FTP_INDEX = 2
+POP3_INDEX = 3 
+
+# list of honeypots
+honeypots = [cowrie, heralding1]
+
+# list of services
+services = ["ssh", "telnet", "ftp", "pop3"]
+
+# service map (honeypots x services): rows = honeypot, columns = services supported
+sm = [[1, 1, 0, 0], [1, 0, 1, 1]]
+
+# service busy: sbn = 1 if it is busy, else it is 0
+# default = all services are free
+sb = [[0, 0, 0, 0], [0, 0, 0, 0]]
+
+# -------------------------------------------------------------------------------------- #
+
 class RestController(ExampleSwitch13):
     _CONTEXTS = {'wsgi': WSGIApplication}
 
@@ -111,73 +136,7 @@ class RestController(ExampleSwitch13):
         super(RestController, self).switch_features_handler(ev)
         datapath = ev.msg.datapath
         self.switches[datapath.id] = datapath
-        self.mac_to_port.setdefault(datapath.id, {})
-
-
-    # # MAC OBFUSCATION
-    # def change_host_src(self, dpid, src_ip, ip_item, new_mac):
-    #     datapath = self.switches.get(dpid)
-    #     parser = datapath.ofproto_parser
-    #     out_port = u.host_to_port(subnet1, src_ip)
-    #     src_mac = u.host_to_mac(subnet1, src_ip)
-    #     mac_item = u.host_to_mac(subnet1, ip_item)
-    #     actions = [parser.OFPActionSetField(arp_sha=new_mac),
-    #                parser.OFPActionOutput(out_port)]
-    #     match = parser.OFPMatch(eth_type=0x0806, arp_op=arp.ARP_REPLY,
-    #                             arp_sha=mac_item, arp_tha=src_mac)
-    #     self.add_flow_with_idle(datapath, 1000, match, actions)
-    #     #self.add_flow(datapath, 1000, match, actions, 1)
-
-    # def redirect_icmp_request(self, dpid, src_ip, ip_item, new_mac):
-    #     datapath = self.switches.get(dpid)
-    #     parser = datapath.ofproto_parser
-    #     out_port = u.host_to_port(subnet1, ip_item)
-    #     src_mac = u.host_to_mac(subnet1, src_ip)
-    #     mac_item = u.host_to_mac(subnet1, ip_item)
-    #     actions = [parser.OFPActionSetField(eth_dst=mac_item),
-    #                parser.OFPActionOutput(out_port)]
-    #     match = parser.OFPMatch(eth_type=0x0800, eth_src=src_mac, eth_dst=new_mac, ip_proto=1,
-    #                             icmpv4_type=icmp.ICMP_ECHO_REQUEST)
-    #     self.add_flow_with_idle(datapath, 1000, match, actions)
-    #     #self.add_flow(datapath, 1000, match, actions, 1)
-
-    # def change_host_icmp_reply(self, dpid, src_ip, ip_item, new_mac):
-    #     datapath = self.switches.get(dpid)
-    #     parser = datapath.ofproto_parser
-    #     out_port = u.host_to_port(subnet1, src_ip)
-    #     src_mac = u.host_to_mac(subnet1, src_ip)
-    #     mac_item = u.host_to_mac(subnet1, ip_item)
-    #     actions = [parser.OFPActionSetField(eth_src=new_mac),
-    #                parser.OFPActionOutput(out_port)]
-    #     match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, eth_src=mac_item,
-    #                                              eth_dst=src_mac, ip_proto=1, icmpv4_type=icmp.ICMP_ECHO_REPLY)
-    #     self.add_flow_with_idle(datapath, 1000, match, actions)
-    #     #self.add_flow(datapath, 1000, match, actions, 1)
-
-    # def redirect_tcp_request(self, dpid, src_ip, ip_item, new_mac):
-    #     datapath = self.switches.get(dpid)
-    #     parser = datapath.ofproto_parser
-    #     out_port = u.host_to_port(subnet1, ip_item)
-    #     src_mac = u.host_to_mac(subnet1, src_ip)
-    #     mac_item = u.host_to_mac(subnet1, ip_item)
-    #     actions = [parser.OFPActionSetField(eth_dst=mac_item),
-    #                parser.OFPActionOutput(out_port)]       
-    #     match = parser.OFPMatch(eth_type=0x0800, eth_src=src_mac, eth_dst=new_mac, ip_proto=6)
-    #     self.add_flow_with_idle(datapath, 1000, match, actions)
-    #     #self.add_flow(datapath, 1000, match, actions, 1)
-    
-    # def change_host_tcp_response(self, dpid, src_ip, ip_item, new_mac):
-    #     datapath = self.switches.get(dpid)
-    #     parser = datapath.ofproto_parser
-    #     out_port = u.host_to_port(subnet1, src_ip)
-    #     src_mac = u.host_to_mac(subnet1, src_ip)
-    #     mac_item = u.host_to_mac(subnet1, ip_item)
-    #     actions = [parser.OFPActionSetField(eth_src=new_mac),
-    #                parser.OFPActionOutput(out_port)]
-    #     match = datapath.ofproto_parser.OFPMatch(eth_type=0x800, eth_src=mac_item,
-    #                                              eth_dst=src_mac, ip_proto=6)
-    #     self.add_flow_with_idle(datapath, 1000, match, actions)
-        #self.add_flow(datapath, 1000, match, actions, 1)       
+        self.mac_to_port.setdefault(datapath.id, {})   
     
     # REDIRECTION TO HERALDING
     def redirect_to_heralding_ftp(self, dpid, src_ip):
@@ -231,7 +190,7 @@ class RestController(ExampleSwitch13):
        
     # REDIRECTION TO COWRIE
     # Presuppongo che applico il MTD esclusivamente nella subnet1 (rete interna)
-    def redirect_to_cowrie_ssh(self, dpid, src_ip):
+    def redirect_to_cowrie_ssh_int(self, dpid, src_ip):
         datapath = self.switches.get(dpid)
         parser = datapath.ofproto_parser
         self.attacker = src_ip
@@ -242,7 +201,7 @@ class RestController(ExampleSwitch13):
                                 ipv4_dst=service.get_ip_addr(), ip_proto=6, tcp_dst=22)
         self.add_flow(datapath, 1000, match, actions, 2)
 
-    def change_cowrie_src_ssh(self, dpid, src_ip):
+    def change_cowrie_src_ssh_int(self, dpid, src_ip):
         datapath = self.switches.get(dpid)
         parser = datapath.ofproto_parser
         out_port = u.host_to_port(subnet1, src_ip)
@@ -271,6 +230,28 @@ class RestController(ExampleSwitch13):
         match = parser.OFPMatch(eth_type=0x0800, ipv4_src=cowrie.get_ip_addr(), ipv4_dst=src_ip, 
                                 eth_src=gw1.get_MAC_addr(), ip_proto=6, tcp_src=23)
         self.add_flow(datapath, 1000, match, actions, 2)
+    
+    # REDIRECT TO HERALDING SSH - FROM INTERNAL NETWORK
+    def redirect_to_heralding_ssh_int(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        self.attacker = src_ip
+        actions = [parser.OFPActionSetField(eth_dst=gw1.get_MAC_addr()),
+                   parser.OFPActionSetField(ipv4_dst=heralding1.get_ip_addr()),
+                   parser.OFPActionOutput(gw1.get_ovs_port())]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip,
+                                ipv4_dst=service.get_ip_addr(), ip_proto=6, tcp_dst=22)
+        self.add_flow(datapath, 1000, match, actions, 2)
+
+    def change_heralding_src_ssh_int(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        out_port = u.host_to_port(subnet1, src_ip)
+        actions = [parser.OFPActionSetField(ipv4_src=service.get_ip_addr()),
+                   parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=heralding1.get_ip_addr(), ipv4_dst=src_ip, 
+                                eth_src=gw1.get_MAC_addr(), ip_proto=6, tcp_src=22)
+        self.add_flow(datapath, 1000, match, actions, 2)    
 
     # PORT HOPPING
     def drop_http_syn(self, dpid, src_ip):
@@ -307,43 +288,11 @@ class RestController(ExampleSwitch13):
         self.add_flow(datapath, 1000, match, actions, 0)
 
 
-
-    # def change_http_port(self, dpid, src_ip):
-    #     datapath = self.switches.get(dpid)
-    #     parser = datapath.ofproto_parser
-    #     out_port = u.host_to_port(subnet1, src_ip)
-    #     self.port = 110
-    #     # PERMIT tcp input to service port 110
-    #     self.permit_tcp_dstIP_dstPORT(parser, service.get_ip_addr(), service.get_ovs_port(), 110, datapath)
-    #     actions = [parser.OFPActionSetField(tcp_src=110),
-    #                parser.OFPActionOutput(out_port)]
-    #     match = parser.OFPMatch(eth_type=0x0800, ipv4_src=service.get_ip_addr(), ipv4_dst=src_ip, 
-    #                             eth_src=service.get_MAC_addr(), ip_proto=6, tcp_src=80)  
-    #     self.add_flow(datapath, 1000, match, actions, 0)
-
-    # def drop_pop3_rst(self, dpid, src_ip):
-    #     datapath = self.switches.get(dpid)
-    #     parser = datapath.ofproto_parser
-    #     actions = []
-    #     match = parser.OFPMatch(eth_type=0x0800, ipv4_src=service.get_ip_addr(), ipv4_dst=src_ip, 
-    #                             eth_src=service.get_MAC_addr(), ip_proto=6, tcp_src=110)   
-    #     self.add_flow(datapath, 1000, match, actions, 0)          
-                            
-    # def send_to_controller(self, dpid, src_ip):
-    #     datapath = self.switches.get(dpid)
-    #     ofproto = datapath.ofproto
-    #     parser = datapath.ofproto_parser
-    #     actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-    #                                       ofproto.OFPCML_NO_BUFFER)]
-    #     match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip, ipv4_dst=service.get_ip_addr(), 
-    #                            ip_proto=6, tcp_dst=self.port)
-    #     self.add_flow(datapath, 1000, match, actions, 0)
-
     # REDIRECTION TO HERALDING FOR DMZ HOST (SERVICE SSH, PORT 22)
-    def redirect_to_heralding_ssh(self, dpid, src_ip):
+    def redirect_to_heralding_ssh_ext(self, dpid, src_ip):
         datapath = self.switches.get(dpid)
         parser = datapath.ofproto_parser
-        src_mac = u.host_to_mac(subnet1, src_ip)
+        src_mac = u.host_to_mac(subnet4, src_ip)
         actions = [parser.OFPActionSetField(eth_dst=gw10.get_MAC_addr()),
                    parser.OFPActionSetField(ipv4_dst=heralding1.get_ip_addr()),
                    parser.OFPActionOutput(gw10.get_ovs_port())]
@@ -351,7 +300,7 @@ class RestController(ExampleSwitch13):
                                 ipv4_dst=dmz_service.get_ip_addr(), ip_proto=6, tcp_dst=22)              
         self.add_flow(datapath, 1000, match, actions, 1)
     
-    def change_heralding_src_ssh(self, dpid, src_ip):
+    def change_heralding_src_ssh_ext(self, dpid, src_ip):
         datapath = self.switches.get(dpid)
         parser = datapath.ofproto_parser
         out_port = u.host_to_port(subnet4, src_ip)
@@ -361,13 +310,36 @@ class RestController(ExampleSwitch13):
         match = parser.OFPMatch(eth_type=0x0800, ipv4_src=heralding1.get_ip_addr(), ipv4_dst=src_ip, 
                                 eth_src=gw10.get_MAC_addr(), ip_proto=6, tcp_src=22)                
         self.add_flow(datapath, 1000, match, actions, 1)
+    
+    # REDIRECT TO COWRIE FROM DMZ HOST (SERVICE SSH, PORT 22)
+    def redirect_to_cowrie_ssh_ext(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        src_mac = u.host_to_mac(subnet4, src_ip)
+        actions = [parser.OFPActionSetField(eth_dst=gw10.get_MAC_addr()),
+                   parser.OFPActionSetField(ipv4_dst=cowrie.get_ip_addr()),
+                   parser.OFPActionOutput(gw10.get_ovs_port())]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip,
+                                ipv4_dst=dmz_service.get_ip_addr(), ip_proto=6, tcp_dst=22)              
+        self.add_flow(datapath, 1000, match, actions, 1)
+    
+    def change_cowrie_src_ssh_ext(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        out_port = u.host_to_port(subnet4, src_ip)
+        actions = [parser.OFPActionSetField(ipv4_src=dmz_service.get_ip_addr()),
+                   parser.OFPActionSetField(eth_src=dmz_service.get_MAC_addr()),
+                   parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=cowrie.get_ip_addr(), ipv4_dst=src_ip, 
+                                eth_src=gw10.get_MAC_addr(), ip_proto=6, tcp_src=22)                
+        self.add_flow(datapath, 1000, match, actions, 1)   
 
 class SimpleSwitchController(ControllerBase):
     def __init__(self, req, link, data, **config):
         super(SimpleSwitchController, self).__init__(req, link, data, **config)
         self.simple_switch_app = data[name]
 
-    @route('restswitch', '/rest_controller/redirect_to_cowrie_ssh', methods=['POST'])
+    @route('restswitch', '/rest_controller/redirect_ssh_int', methods=['POST'])
     def redirect_to_cowrie_ssh(self, req, **kwargs):
         richiesta = req.json
         print(richiesta)
@@ -377,9 +349,20 @@ class SimpleSwitchController(ControllerBase):
             src_IP = richiesta['Source_IP']
             dpid = int(dpid)
 
-            #simple_switch.del_rules_cookie(dpid, 2)
-            simple_switch.redirect_to_cowrie_ssh(dpid, src_IP)
-            simple_switch.change_cowrie_src_ssh(dpid, src_IP)
+            a = sm[COWRIE_INDEX][SSH_INDEX]
+            b = sb[COWRIE_INDEX][SSH_INDEX]
+
+            # default = redirect to cowrie
+            # if cowrie is busy redirect to heralding
+            if (a and b) == 0: 
+                sb[COWRIE_INDEX][SSH_INDEX] = 1
+                simple_switch.redirect_to_cowrie_ssh_int(dpid, src_IP)
+                simple_switch.change_cowrie_src_ssh_int(dpid, src_IP)
+            else:
+                sb[HERALDING_INDEX][SSH_INDEX] = 1
+                simple_switch.redirect_to_heralding_ssh_int(dpid, src_IP)
+                simple_switch.change_heralding_src_ssh_int(dpid, src_IP)
+
             # simple_switch.redirect_to_cowrie_telnet(dpid, src_IP)
             # simple_switch.change_cowrie_src_telnet(dpid, src_IP)
 
@@ -396,7 +379,8 @@ class SimpleSwitchController(ControllerBase):
             print(richiesta)
             dpid = richiesta['Dpid']
             src_IP = richiesta['Source_IP']
-            dpid = int(dpid)            
+            dpid = int(dpid)        
+            sb[HERALDING_INDEX][FTP_INDEX] = 1    
             simple_switch.redirect_to_heralding_ftp(dpid, src_IP)
             simple_switch.change_heralding_src_ftp(dpid, src_IP)
             return Response(status=200)
@@ -412,7 +396,8 @@ class SimpleSwitchController(ControllerBase):
             print(richiesta)
             dpid = richiesta['Dpid']
             src_IP = richiesta['Source_IP']
-            dpid = int(dpid)            
+            dpid = int(dpid)       
+            sb[COWRIE_INDEX][TELNET_INDEX] = 1     
             simple_switch.redirect_to_cowrie_smtp_telnet(dpid, src_IP)
             simple_switch.change_cowrie_src_smtp_telnet(dpid, src_IP)
             return Response(status=200)
@@ -429,6 +414,8 @@ class SimpleSwitchController(ControllerBase):
             dpid = richiesta['Dpid']
             src_IP = richiesta['Source_IP']
             dpid = int(dpid)       
+
+            sb[HERALDING_INDEX][POP3_INDEX] = 1
             simple_switch.drop_http_syn(dpid, src_IP)
             simple_switch.redirect_pop3_syn(dpid, src_IP)
             simple_switch.change_heralding_src_pop3(dpid, src_IP)
@@ -440,7 +427,7 @@ class SimpleSwitchController(ControllerBase):
         else:
             return Response(status=400)
     
-    @route('restswitch', '/rest_controller/redirect_to_heralding_dmz_ssh', methods=['POST'])
+    @route('restswitch', '/rest_controller/redirect_ssh_dmz', methods=['POST'])
     def redirect_to_heralding_dmz_ssh(self, req, **kwargs):
         richiesta = req.json
         simple_switch = self.simple_switch_app
@@ -450,46 +437,18 @@ class SimpleSwitchController(ControllerBase):
             dpid = richiesta['Dpid']
             src_IP = richiesta['Source_IP']
             dpid = int(dpid) 
-            simple_switch.redirect_to_heralding_ssh(dpid, src_IP)
-            simple_switch.change_heralding_src_ssh(dpid, src_IP)
+
+            a = sm[COWRIE_INDEX][SSH_INDEX]
+            b = sb[COWRIE_INDEX][SSH_INDEX]
+
+            if (a and b) == 0: 
+                sb[COWRIE_INDEX][SSH_INDEX] = 1
+                simple_switch.redirect_to_cowrie_ssh_ext(dpid, src_IP)
+                simple_switch.change_cowrie_src_ssh_ext(dpid, src_IP)
+            else:           
+                sb[HERALDING_INDEX][SSH_INDEX] = 1
+                simple_switch.redirect_to_heralding_ssh_ext(dpid, src_IP)
+                simple_switch.change_heralding_src_ssh_ext(dpid, src_IP)
             return Response(status=200)
         else:
             return Response(status=400)
-        
-
-    @route('restswitch', '/rest_controller/mac_shuffling', methods=['POST'])
-    def mac_shuffling(self, req, **kwargs):
-        richiesta = req.json
-        simple_switch = self.simple_switch_app
-        if richiesta:
-            print(richiesta)
-            dpid = richiesta['Dpid']
-            src_IP = richiesta['Source_IP']
-            dpid = int(dpid)
-
-            #simple_switch.del_rules_cookie(dpid, 1)
-
-            # for k, v in subnet1.nodes.items():
-            #     ip_item = v.get_ip_addr()
-            #     if ip_item != src_IP and ip_item != gw1.get_ip_addr():
-            #         print(ip_item)
-            #         new_mac = RandMac()
-            #         new_mac = str(new_mac)
-                    # simple_switch.change_host_src(dpid, src_IP, ip_item, new_mac)
-                    # simple_switch.redirect_icmp_request(dpid, src_IP, ip_item, new_mac)
-                    # simple_switch.change_host_icmp_reply(dpid, src_IP, ip_item, new_mac)
-                    # simple_switch.redirect_tcp_request(dpid, src_IP, ip_item, new_mac)
-                    # simple_switch.change_host_tcp_response(dpid, src_IP, ip_item, new_mac)
-            simple_switch.redirect_to_heralding_ftp(dpid, src_IP)
-            simple_switch.change_heralding_src_ftp(dpid, src_IP)
-
-            simple_switch.redirect_to_cowrie_smtp_telnet(dpid, src_IP)
-            simple_switch.change_cowrie_src_smtp_telnet(dpid, src_IP)
-
-            simple_switch.change_http_port(dpid, src_IP)
-            simple_switch.drop_pop3_rst(dpid, src_IP)
-
-            return Response(status=200)
-        else:
-            return Response(status=400)
-    
