@@ -24,108 +24,7 @@ from utils import Utils as u
 from network import Host, Honeypot, Attacker, Subnet, Network, Gateway
 from ryu.lib.packet import tcp, icmp, arp, ipv4, vlan
 import random
-
-# ------- NETWORK TOPOLPOGY -------------------------------------------------------------- #    
-# Nodes
-host = Host('host', '192.168.3.10', '08:00:27:b6:d0:66', 15, '255.255.255.0')
-service = Host('service', '192.168.3.11', '08:00:27:29:bd:84', 3, '255.255.255.0')
-heralding = Honeypot('heralding', '192.168.3.12', '08:00:27:0b:8b:8e', 4, '255.255.255.0')
-
-cowrie = Honeypot('cowrie', '192.168.4.10', '08:00:27:e5:e1:01', 6, '255.255.255.0')
-heralding1 = Honeypot('heralding1', '192.168.4.11', '08:00:27:f4:0c:20', 13, '255.255.255.0')
-
-elk_if1 = Host('ELK_IF1', '192.168.5.10', '08:00:27:b4:ad:5c', 8, '255.255.255.0')
-elk_if2 = Host('ELK_IF2', '192.168.11.10', '08:00:27:13:25:57', 13, '255.255.255.0')
-
-dmz_heralding = Honeypot('dmz_heralding', '192.168.10.10', '08:00:27:9f:12:16', 2, '255.255.255.0')
-dmz_service = Host('dmz_service', '192.168.10.11', '08:00:27:b6:d0:67', 22, '255.255.255.0')
-dmz_host = Host('dmz_host', '192.168.10.12', '08:00:27:b6:d0:68', 23, '255.255.255.0')
-
-# Subnets
-# ovs1
-subnet1 = Subnet('S1', '192.168.3.0', '255.255.255.0')
-subnet2 = Subnet('S2', '192.168.4.0', '255.255.255.0')
-subnet3 = Subnet('S3', '192.168.5.0', '255.255.255.0')
-#ovs2
-subnet4 = Subnet('S4', '192.168.10.0', '255.255.255.0')
-subnet5 = Subnet('S5', '192.168.11.0', '255.255.255.0')
-
-# Gateways
-# ovs1
-gw1 = Gateway('gw1', '192.168.3.1', '9e:c3:c6:49:0e:e8', 1, '255.255.255.0')
-gw2 = Gateway('gw2', '192.168.4.1', '16:67:1f:3f:86:a7', 5, '255.255.255.0')
-gw3 = Gateway('gw3', '192.168.5.1', 'fe:46:67:35:0d:d1', 7, '255.255.255.0')
-# ovs2
-gw10 = Gateway('gw10', '192.168.10.1', '8a:ae:02:40:8f:93', 1, '255.255.255.0')
-gw11 = Gateway('gw11', '192.168.11.1', 'ea:6a:20:a0:96:11', 4, '255.255.255.0')
-
-# Network
-network1 = Network('Net1')
-network2 = Network('Net2')
-
-# Add nodes to subnets
-# ovs1
-subnet1.add_node(host, host.get_ovs_port())
-subnet1.add_node(heralding, heralding.get_ovs_port())
-subnet1.add_node(service, service.get_ovs_port())
-subnet1.add_node(gw1, gw1.get_ovs_port())
-
-subnet2.add_node(cowrie, cowrie.get_ovs_port())
-subnet2.add_node(heralding1, heralding1.get_ovs_port())
-subnet2.add_node(gw2, gw2.get_ovs_port())
-
-subnet3.add_node(elk_if1, elk_if1.get_ovs_port())
-subnet3.add_node(gw3, gw3.get_ovs_port())
-
-#ovs2
-subnet4.add_node(dmz_service, dmz_service.get_ovs_port())
-subnet4.add_node(dmz_heralding, dmz_heralding.get_ovs_port())
-subnet4.add_node(dmz_host, dmz_host.get_ovs_port())
-subnet4.add_node(gw10, gw10.get_ovs_port())
-
-subnet5.add_node(elk_if2, elk_if2.get_ovs_port())
-subnet5.add_node(gw11, gw11.get_ovs_port())
-
-
-# Add subnets to network
-network1.add_subnet(subnet1)
-network1.add_subnet(subnet2)
-network1.add_subnet(subnet3)
-
-network2.add_subnet(subnet4)
-network2.add_subnet(subnet5)
-
-ports = [23, 5432, 143, 5900, 3306]
-
-br0_dpid = 85884017520972
-br1_dpid = 101737510984148
-
-# -------------------------------------------------------------------------------------- #
-
-## THREAT INTELLIGENCE SUBNET MANAGEMENT
-
-# indexes
-COWRIE_INDEX = 0
-HERALDING_INDEX = 1
-SSH_INDEX = 0
-TELNET_INDEX= 1
-FTP_INDEX = 2
-POP3_INDEX = 3
-
-# list of honeypots
-honeypots = [cowrie, heralding1]
-
-# list of services
-services = ["ssh", "telnet", "ftp", "pop3"]
-
-# service map (honeypots x services): rows = honeypot, columns = services supported
-sm = [[1, 1, 0, 0], [1, 0, 1, 1]]
-
-# service busy: sbn = 1 if it is busy, else it is 0
-# default = all services are free
-sb = [[0, 0, 0, 0], [0, 0, 0, 0]]
-
-# -------------------------------------------------------------------------------------- #
+import topology as t
 
 class ExampleSwitch13(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -145,9 +44,9 @@ class ExampleSwitch13(app_manager.RyuApp):
         parser = datapath.ofproto_parser
         dpid = datapath.id
 
-        if dpid == br0_dpid:
+        if dpid == t.br0_dpid:
             print(dpid)
-            self.port = ports[random.randint(0, 4)]
+            self.port = t.ports[random.randint(0, 4)]
             # install the table-miss flow entry.
             match = parser.OFPMatch()
             actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
@@ -156,7 +55,7 @@ class ExampleSwitch13(app_manager.RyuApp):
             self.add_flow(datapath, 0, match, actions, 0)
             self.add_default_rules_br0(datapath)
         
-        if dpid == br1_dpid:
+        if dpid == t.br1_dpid:
             # install the table-miss flow entry
             print(dpid)
             match = parser.OFPMatch()
@@ -174,7 +73,7 @@ class ExampleSwitch13(app_manager.RyuApp):
         dpid = datapath.id
 
 
-        if dpid == br0_dpid:
+        if dpid == t.br0_dpid:
             if msg.cookie == 4:
                 values = msg.match.items()
                 print(values)
@@ -182,11 +81,11 @@ class ExampleSwitch13(app_manager.RyuApp):
                 port_dst = values[3][1]
                 self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
             
-                self.port = ports[random.randint(0, 4)]
+                self.port = t.ports[random.randint(0, 4)]
                 self.redirect_protocol_syn(parser, datapath, self.port)
                 self.change_heralding_src_protocol(parser, datapath, self.port)
         
-        if dpid == br1_dpid:
+        if dpid == t.br1_dpid:
             pass
         
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
@@ -209,23 +108,23 @@ class ExampleSwitch13(app_manager.RyuApp):
         in_port = msg.match['in_port']
         out_port = ofproto.OFPP_FLOOD
 
-        if dpid == br0_dpid:
-            if dst == host.get_MAC_addr():
-                out_port = host.get_ovs_port()
-            elif dst == service.get_MAC_addr():
-                out_port = service.get_ovs_port()
-            elif dst == heralding.get_MAC_addr():
-                out_port = heralding.get_ovs_port()
-            elif dst == gw1.get_MAC_addr():
-                out_port = gw1.get_ovs_port()
-            elif dst == cowrie.get_MAC_addr():
-                out_port = cowrie.get_ovs_port()
-            elif dst == gw2.get_MAC_addr():
-                out_port = gw2.get_ovs_port()
-            elif dst == elk_if1.get_MAC_addr():
-                out_port = elk_if1.get_ovs_port()
-            elif dst == gw3.get_MAC_addr():
-                out_port = gw3.get_ovs_port()
+        if dpid == t.br0_dpid:
+            if dst == t.host.get_MAC_addr():
+                out_port = t.host.get_ovs_port()
+            elif dst == t.service.get_MAC_addr():
+                out_port = t.service.get_ovs_port()
+            elif dst == t.heralding.get_MAC_addr():
+                out_port = t.heralding.get_ovs_port()
+            elif dst == t.gw1.get_MAC_addr():
+                out_port = t.gw1.get_ovs_port()
+            elif dst == t.cowrie.get_MAC_addr():
+                out_port = t.cowrie.get_ovs_port()
+            elif dst == t.gw2.get_MAC_addr():
+                out_port = t.gw2.get_ovs_port()
+            elif dst == t.elk_if1.get_MAC_addr():
+                out_port = t.elk_if1.get_ovs_port()
+            elif dst == t.gw3.get_MAC_addr():
+                out_port = t.gw3.get_ovs_port()
 
 
             actions = [parser.OFPActionOutput(out_port)]
@@ -242,19 +141,19 @@ class ExampleSwitch13(app_manager.RyuApp):
                                     data=msg.data)
             datapath.send_msg(out)
 
-        if dpid == br1_dpid:
-            if dst == dmz_service.get_MAC_addr():
-                out_port = dmz_service.get_ovs_port()
-            elif dst == dmz_heralding.get_MAC_addr():
-                out_port = dmz_heralding.get_ovs_port()
-            elif dst == dmz_host.get_MAC_addr():
-                out_port = dmz_host.get_ovs_port()
-            elif dst == gw10.get_MAC_addr():
-                out_port = gw10.get_ovs_port()
-            elif dst == elk_if2.get_MAC_addr():
-                out_port = elk_if2.get_ovs_port()
-            elif dst == gw11.get_MAC_addr():
-                out_port = gw11.get_ovs_port()
+        if dpid == t.br1_dpid:
+            if dst == t.dmz_service.get_MAC_addr():
+                out_port = t.dmz_service.get_ovs_port()
+            elif dst == t.dmz_heralding.get_MAC_addr():
+                out_port = t.dmz_heralding.get_ovs_port()
+            elif dst == t.dmz_host.get_MAC_addr():
+                out_port = t.dmz_host.get_ovs_port()
+            elif dst == t.gw10.get_MAC_addr():
+                out_port = t.gw10.get_ovs_port()
+            elif dst == t.elk_if2.get_MAC_addr():
+                out_port = t.elk_if2.get_ovs_port()
+            elif dst == t.gw11.get_MAC_addr():
+                out_port = t.gw11.get_ovs_port()
 
             actions = [parser.OFPActionOutput(out_port)]
 
@@ -308,127 +207,123 @@ class ExampleSwitch13(app_manager.RyuApp):
 
     def add_default_rules_br0(self, datapath):
         parser = datapath.ofproto_parser
-        self.drop_arp_srcIP_srcMAC(parser, gw1.get_ip_addr(), gw2.get_MAC_addr(), datapath, 2)
-        self.drop_arp_srcIP_srcMAC(parser, gw1.get_ip_addr(), gw3.get_MAC_addr(), datapath, 2)
-        self.drop_arp_srcIP_srcMAC(parser, gw1.get_ip_addr(), '5c:87:9c:33:d9:d4', datapath, 2)
-        self.drop_arp_srcIP_srcMAC(parser, gw1.get_ip_addr(), gw10.get_MAC_addr(), datapath, 2)        
-        self.drop_arp_srcIP_srcMAC(parser, gw1.get_ip_addr(), gw11.get_MAC_addr(), datapath, 2) 
+        self.drop_arp_srcIP_srcMAC(parser, t.gw1.get_ip_addr(), t.gw2.get_MAC_addr(), datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw1.get_ip_addr(), t.gw3.get_MAC_addr(), datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw1.get_ip_addr(), '5c:87:9c:33:d9:d4', datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw1.get_ip_addr(), t.gw10.get_MAC_addr(), datapath, 2)        
+        self.drop_arp_srcIP_srcMAC(parser, t.gw1.get_ip_addr(), t.gw11.get_MAC_addr(), datapath, 2) 
 
-        self.drop_arp_srcIP_srcMAC(parser, gw2.get_ip_addr(), gw1.get_MAC_addr(), datapath, 2)
-        self.drop_arp_srcIP_srcMAC(parser, gw2.get_ip_addr(), gw3.get_MAC_addr(), datapath, 2)
-        self.drop_arp_srcIP_srcMAC(parser, gw2.get_ip_addr(), '5c:87:9c:33:d9:d4', datapath, 2)
-        self.drop_arp_srcIP_srcMAC(parser, gw2.get_ip_addr(), gw10.get_MAC_addr(), datapath, 2)        
-        self.drop_arp_srcIP_srcMAC(parser, gw2.get_ip_addr(), gw11.get_MAC_addr(), datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw2.get_ip_addr(), t.gw1.get_MAC_addr(), datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw2.get_ip_addr(), t.gw3.get_MAC_addr(), datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw2.get_ip_addr(), '5c:87:9c:33:d9:d4', datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw2.get_ip_addr(), t.gw10.get_MAC_addr(), datapath, 2)        
+        self.drop_arp_srcIP_srcMAC(parser, t.gw2.get_ip_addr(), t.gw11.get_MAC_addr(), datapath, 2)
 
-        self.drop_arp_srcIP_srcMAC(parser, gw3.get_ip_addr(), gw1.get_MAC_addr(), datapath, 2)
-        self.drop_arp_srcIP_srcMAC(parser, gw3.get_ip_addr(), gw2.get_MAC_addr(), datapath, 2)
-        self.drop_arp_srcIP_srcMAC(parser, gw3.get_ip_addr(), '5c:87:9c:33:d9:d4', datapath, 2)
-        self.drop_arp_srcIP_srcMAC(parser, gw3.get_ip_addr(), gw10.get_MAC_addr(), datapath, 2)        
-        self.drop_arp_srcIP_srcMAC(parser, gw3.get_ip_addr(), gw11.get_MAC_addr(), datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw3.get_ip_addr(), t.gw1.get_MAC_addr(), datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw3.get_ip_addr(), t.gw2.get_MAC_addr(), datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw3.get_ip_addr(), '5c:87:9c:33:d9:d4', datapath, 2)
+        self.drop_arp_srcIP_srcMAC(parser, t.gw3.get_ip_addr(), t.gw10.get_MAC_addr(), datapath, 2)        
+        self.drop_arp_srcIP_srcMAC(parser, t.gw3.get_ip_addr(), t.gw11.get_MAC_addr(), datapath, 2)
 
 
         # DROP host to elk
-        self.drop_icmp_srcIP_srcMAC_dstIP(parser, host.get_ip_addr(), host.get_MAC_addr(), 
-                                         elk_if1.get_ip_addr(), datapath)
-        self.drop_tcp_srcIP_srcMAC_dstIP(parser, host.get_ip_addr(), host.get_MAC_addr(), 
-                                         elk_if1.get_ip_addr(), datapath)
+        self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.host.get_ip_addr(), t.host.get_MAC_addr(), 
+                                         t.elk_if1.get_ip_addr(), datapath)
+        self.drop_tcp_srcIP_srcMAC_dstIP(parser, t.host.get_ip_addr(), t.host.get_MAC_addr(), 
+                                         t.elk_if1.get_ip_addr(), datapath)
         
         # DROP host to controller
-        self.drop_icmp_srcIP_srcMAC_dstIP(parser, host.get_ip_addr(), host.get_MAC_addr(), 
+        self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.host.get_ip_addr(), t.host.get_MAC_addr(), 
                                          '192.168.5.100', datapath)      
-        self.drop_tcp_srcIP_srcMAC_dstIP(parser, host.get_ip_addr(), host.get_MAC_addr(), 
+        self.drop_tcp_srcIP_srcMAC_dstIP(parser, t.host.get_ip_addr(), t.host.get_MAC_addr(), 
                                          '192.168.5.100', datapath)  
              
         # DROP service to elk
-        self.drop_icmp_srcIP_srcMAC_dstIP(parser, service.get_ip_addr(), service.get_MAC_addr(), 
-                                         elk_if1.get_ip_addr(), datapath)        
-        self.drop_tcp_srcIP_srcMAC_dstIP(parser, service.get_ip_addr(), service.get_MAC_addr(), 
-                                         elk_if1.get_ip_addr(), datapath)    
+        self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.service.get_ip_addr(), t.service.get_MAC_addr(), 
+                                         t.elk_if1.get_ip_addr(), datapath)        
+        self.drop_tcp_srcIP_srcMAC_dstIP(parser, t.service.get_ip_addr(), t.service.get_MAC_addr(), 
+                                         t.elk_if1.get_ip_addr(), datapath)    
            
         # DROP service to controller
-        self.drop_icmp_srcIP_srcMAC_dstIP(parser, service.get_ip_addr(), service.get_MAC_addr(), 
+        self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.service.get_ip_addr(), t.service.get_MAC_addr(), 
                                          '192.168.5.100', datapath)
-        self.drop_tcp_srcIP_srcMAC_dstIP(parser, service.get_ip_addr(), service.get_MAC_addr(), 
+        self.drop_tcp_srcIP_srcMAC_dstIP(parser, t.service.get_ip_addr(), t.service.get_MAC_addr(), 
                                          '192.168.5.100', datapath)    
            
         # DROP heralding to controller
-        self.drop_icmp_srcIP_srcMAC_dstIP(parser, heralding.get_ip_addr(), heralding.get_MAC_addr(), 
+        self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.heralding.get_ip_addr(), t.heralding.get_MAC_addr(), 
                                          '192.168.5.100', datapath)    
-        self.drop_tcp_srcIP_srcMAC_dstIP(parser, heralding.get_ip_addr(), heralding.get_MAC_addr(), 
+        self.drop_tcp_srcIP_srcMAC_dstIP(parser, t.heralding.get_ip_addr(), t.heralding.get_MAC_addr(), 
                                          '192.168.5.100', datapath)  
         
         # DROP cowrie to controller    
-        self.drop_icmp_srcIP_srcMAC_dstIP(parser, cowrie.get_ip_addr(), cowrie.get_MAC_addr(), 
+        self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.cowrie.get_ip_addr(), t.cowrie.get_MAC_addr(), 
                                          '192.168.5.100', datapath)    
-        self.drop_tcp_srcIP_srcMAC_dstIP(parser, cowrie.get_ip_addr(), cowrie.get_MAC_addr(), 
+        self.drop_tcp_srcIP_srcMAC_dstIP(parser, t.cowrie.get_ip_addr(), t.cowrie.get_MAC_addr(), 
                                          '192.168.5.100', datapath)
         
         # DROP heralding1 to controller
-        self.drop_icmp_srcIP_srcMAC_dstIP(parser, heralding1.get_ip_addr(), heralding1.get_MAC_addr(), 
+        self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.heralding1.get_ip_addr(), t.heralding1.get_MAC_addr(), 
                                          '192.168.5.100', datapath)    
-        self.drop_tcp_srcIP_srcMAC_dstIP(parser, heralding1.get_ip_addr(), heralding1.get_MAC_addr(), 
+        self.drop_tcp_srcIP_srcMAC_dstIP(parser, t.heralding1.get_ip_addr(), t.heralding1.get_MAC_addr(), 
                                          '192.168.5.100', datapath)          
 
         # DROP arp input to service
-        self.drop_tcp_dstIP(parser, service.get_ip_addr(), datapath)
+        self.drop_tcp_dstIP(parser, t.service.get_ip_addr(), datapath)
 
         # PERMIT tcp input to service port 22
-        self.permit_tcp_dstIP_dstPORT(parser, service.get_ip_addr(), service.get_ovs_port(), 22, datapath)
+        self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 22, datapath)
 
         # PERMIT tcp input to service port 25
-        self.permit_tcp_dstIP_dstPORT(parser, service.get_ip_addr(), service.get_ovs_port(), 25, datapath)
+        self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 25, datapath)
 
         # PERMIT tcp input to service port 80
-        self.permit_tcp_dstIP_dstPORT(parser, service.get_ip_addr(), service.get_ovs_port(), 80, datapath)
+        self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 80, datapath)
 
         # PERMIT tcp input to service port 21
-        self.permit_tcp_dstIP_dstPORT(parser, service.get_ip_addr(), service.get_ovs_port(), 21, datapath)
+        self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 21, datapath)
 
         # DROP arp input to heralding
-        self.drop_tcp_dstIP(parser, heralding.get_ip_addr(), datapath)
+        self.drop_tcp_dstIP(parser, t.heralding.get_ip_addr(), datapath)
 
         # PERMIT tcp input from service to heralding
-        self.permit_tcp_host1_host2(parser, service.get_ip_addr(), heralding.get_ip_addr(), heralding.get_ovs_port(), datapath)
+        self.permit_tcp_host1_host2(parser, t.service.get_ip_addr(), t.heralding.get_ip_addr(), t.heralding.get_ovs_port(), datapath)
         # PERMIT tcp input from gateway and elk to heralding
-        self.permit_tcp_host1_host2(parser, gw1.get_ip_addr(), heralding.get_ip_addr(), heralding.get_ovs_port(), datapath)
-        self.permit_tcp_host1_host2(parser, elk_if1.get_ip_addr(), heralding.get_ip_addr(), heralding.get_ovs_port(), datapath)
-        self.permit_tcp_host1_host2(parser, elk_if1.get_ip_addr(), dmz_heralding.get_ip_addr(), dmz_heralding.get_ovs_port(), datapath)
+        self.permit_tcp_host1_host2(parser, t.gw1.get_ip_addr(), t.heralding.get_ip_addr(), t.heralding.get_ovs_port(), datapath)
+        self.permit_tcp_host1_host2(parser, t.elk_if1.get_ip_addr(), t.heralding.get_ip_addr(), t.heralding.get_ovs_port(), datapath)
+        self.permit_tcp_host1_host2(parser, t.elk_if1.get_ip_addr(), t.dmz_heralding.get_ip_addr(), t.dmz_heralding.get_ovs_port(), datapath)
 
         # PERMIT tcp input to heralding port 25
-        self.permit_tcp_dstIP_dstPORT(parser, heralding.get_ip_addr(), heralding.get_ovs_port(), 25, datapath)
+        self.permit_tcp_dstIP_dstPORT(parser, t.heralding.get_ip_addr(), t.heralding.get_ovs_port(), 25, datapath)
 
         # DROP arp input to cowrie
-        self.drop_tcp_dstIP(parser, cowrie.get_ip_addr(), datapath)
+        self.drop_tcp_dstIP(parser, t.cowrie.get_ip_addr(), datapath)
+        self.permit_tcp_host1_host2(parser, t.gw1.get_ip_addr(), t.cowrie.get_ip_addr(), t.cowrie.get_ovs_port(), datapath)
+        self.permit_tcp_host1_host2(parser, t.elk_if1.get_ip_addr(), t.cowrie.get_ip_addr(), t.cowrie.get_ovs_port(), datapath)
 
         # PERMIT tcp input to cowrie port 22
-        self.permit_tcp_dstIP_dstPORT(parser, cowrie.get_ip_addr(), cowrie.get_ovs_port(), 22, datapath)
+        self.permit_tcp_dstIP_dstPORT(parser, t.cowrie.get_ip_addr(), t.cowrie.get_ovs_port(), 22, datapath)
 
         # PERMIT tcp input to cowrie port 23
-        self.permit_tcp_dstIP_dstPORT(parser, cowrie.get_ip_addr(), cowrie.get_ovs_port(), 23, datapath)
+        self.permit_tcp_dstIP_dstPORT(parser, t.cowrie.get_ip_addr(), t.cowrie.get_ovs_port(), 23, datapath)
 
-        # # PERMIT level2 traffic through vlan1
-        # self.permit_eth_dstMAC(parser, gw1.get_MAC_addr(), gw1.get_ovs_port(), datapath)
-
-        # # PERMIT level2 traffico thorugh vlan2
-        # self.permit_eth_dstMAC(parser, gw2.get_MAC_addr(), gw2.get_ovs_port(), datapath)
-
-        # MTD PROACTIVE PORT SHUFFLING
+        # MTD PROACTIVE PORT SHUFFLING STARTING RULES
         self.redirect_protocol_syn(parser, datapath, self.port)
         self.change_heralding_src_protocol(parser, datapath, self.port)
 
     def add_default_rules_br1(self, datapath):
         parser = datapath.ofproto_parser
 
-        self.drop_icmp_srcIP_srcPORT_dstIP(parser, gw11.get_ip_addr(), 4, '192.168.11.100', datapath)
-        self.drop_tcp_srcIP_srcPORT_dstIP(parser, gw11.get_ip_addr(), 4, '192.168.11.100', datapath)
+        self.drop_icmp_srcIP_srcPORT_dstIP(parser, t.gw11.get_ip_addr(), 4, '192.168.11.100', datapath)
+        self.drop_tcp_srcIP_srcPORT_dstIP(parser, t.gw11.get_ip_addr(), 4, '192.168.11.100', datapath)
 
-        self.drop_icmp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 22, '192.168.11.100', datapath)
-        self.drop_tcp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 22, '192.168.11.100', datapath)
+        self.drop_icmp_srcIP_srcPORT_dstIP(parser, t.dmz_service.get_ip_addr(), 22, '192.168.11.100', datapath)
+        self.drop_tcp_srcIP_srcPORT_dstIP(parser, t.dmz_service.get_ip_addr(), 22, '192.168.11.100', datapath)
 
-        self.drop_icmp_host1_host2(parser, host.get_ip_addr(), elk_if2.get_ip_addr(), datapath)
-        self.drop_tcp_host1_host2(parser, host.get_ip_addr(), elk_if2.get_ip_addr(), datapath)
-        self.drop_icmp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 22, elk_if2.get_ip_addr(), datapath)
-        self.drop_tcp_srcIP_srcPORT_dstIP(parser, dmz_service.get_ip_addr(), 22, elk_if2.get_ip_addr(), datapath)
+        self.drop_icmp_host1_host2(parser, t.host.get_ip_addr(), t.elk_if2.get_ip_addr(), datapath)
+        self.drop_tcp_host1_host2(parser, t.host.get_ip_addr(), t.elk_if2.get_ip_addr(), datapath)
+        self.drop_icmp_srcIP_srcPORT_dstIP(parser, t.dmz_service.get_ip_addr(), 22, t.elk_if2.get_ip_addr(), datapath)
+        self.drop_tcp_srcIP_srcPORT_dstIP(parser, t.dmz_service.get_ip_addr(), 22, t.elk_if2.get_ip_addr(), datapath)
 
 
     def send_set_async(self, datapath):
@@ -522,19 +417,19 @@ class ExampleSwitch13(app_manager.RyuApp):
 
     # PROACTIVE MTD PORT HOPPING
     def redirect_protocol_syn(self, parser, datapath, port):  
-        self.permit_tcp_dstIP_dstPORT(parser, service.get_ip_addr(), service.get_ovs_port(), port, datapath)
+        self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), port, datapath)
         
-        actions = [parser.OFPActionSetField(eth_dst=heralding.get_MAC_addr()),
-                   parser.OFPActionSetField(ipv4_dst=heralding.get_ip_addr()),
-                   parser.OFPActionOutput(heralding.get_ovs_port())]       
-        match = parser.OFPMatch(eth_type=0x0800, ipv4_dst=service.get_ip_addr(), ip_proto=6, tcp_dst=port)
+        actions = [parser.OFPActionSetField(eth_dst=t.heralding.get_MAC_addr()),
+                   parser.OFPActionSetField(ipv4_dst=t.heralding.get_ip_addr()),
+                   parser.OFPActionOutput(t.heralding.get_ovs_port())]       
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_dst=t.service.get_ip_addr(), ip_proto=6, tcp_dst=port)
         self.add_flow_with_hard(datapath, 1000, match, actions, 4)
 
     def change_heralding_src_protocol(self, parser, datapath, port):
         ofproto = datapath.ofproto
-        actions = [parser.OFPActionSetField(eth_src=service.get_MAC_addr()),
-                   parser.OFPActionSetField(ipv4_src=service.get_ip_addr()),
+        actions = [parser.OFPActionSetField(eth_src=t.service.get_MAC_addr()),
+                   parser.OFPActionSetField(ipv4_src=t.service.get_ip_addr()),
                    parser.OFPActionOutput(ofproto.OFPP_NORMAL)]       
-        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=heralding.get_ip_addr(), 
-                                eth_src=heralding.get_MAC_addr(), ip_proto=6, tcp_src=port)
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.heralding.get_ip_addr(), 
+                                eth_src=t.heralding.get_MAC_addr(), ip_proto=6, tcp_src=port)
         self.add_flow_with_hard(datapath, 1000, match, actions, 5)
