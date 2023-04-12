@@ -1,0 +1,1 @@
+{"virtualbox":{"/home/emma/ubuntu/dmz_cowrie":{"guestpath":"/home/emma/ubuntu/dmz_cowrie","hostpath":"/home/emma/ubuntu/dmz_cowrie","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/home/emma/ubuntu","disabled":false,"__vagrantfile":true}}}
