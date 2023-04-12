@@ -1,1 +1,0 @@
-{"virtualbox":{"/home/emma/ubuntu/shared":{"guestpath":"/home/emma/ubuntu/shared","hostpath":"/home/emma/ubuntu/shared","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/home/emma/ubuntu","disabled":false,"__vagrantfile":true}}}
