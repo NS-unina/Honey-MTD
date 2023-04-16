@@ -33,8 +33,20 @@ sudo systemctl enable kibana
 sudo systemctl enable elasticsearch.service
 
 sudo su<<EOF
-cp /home/emma/ubuntu/elk/logstash.conf /etc/logstash/
+cp /home/emma/ubuntu/elk/logstash.conf /etc/logstash/conf.d
 EOF
 
 sudo service logstash start
 sudo systemctl enable logstash
+
+sudo apt-get update
+sudo apt-get install -y python
+sudo apt-get install -y python3-pip python3-dev libffi-dev libssl-dev
+git clone https://github.com/Yelp/elastalert.git
+cd elastalert
+sudo pip install "setuptools>=11.3"
+sudo pip install pyOpenSSL
+sudo pip install "elasticsearch>=5.0.0"
+cp /home/emma/ubuntu/elk/config.yaml /home/vagrant/elastalert
+mkdir rules
+cp /home/emma/ubuntu/elk/rules/example_new_term.yaml /home/vagrant/elastalert/rules

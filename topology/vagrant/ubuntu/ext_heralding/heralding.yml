@@ -50,7 +50,7 @@ capabilities:
       syst_type: "Windows-NT"
 
   telnet:
-    enabled: true
+    enabled: false
     port: 23
     timeout: 30
     protocol_specific_data:
@@ -83,12 +83,12 @@ capabilities:
         serial_number: 0
 
   postgresql:
-    enabled: true
+    enabled: false
     port: 5432
     timeout: 30
 
   imap:
-    enabled: true
+    enabled: false
     port: 143
     timeout: 30
     protocol_specific_data:
@@ -116,7 +116,7 @@ capabilities:
         serial_number: 0
 
   ssh:
-    enabled: false
+    enabled: true
     port: 22
     timeout: 30
     protocol_specific_data:
@@ -149,7 +149,7 @@ capabilities:
         serial_number: 0
 
   smtp:
-    enabled: true
+    enabled: false
     port: 25
     timeout: 30
     protocol_specific_data:
@@ -158,17 +158,17 @@ capabilities:
       fqdn: ""
 
   vnc:
-    enabled: true
+    enabled: false
     port: 5900
     timeout: 30
 
   socks5:
-    enabled: false
+    enabled: true
     port: 1080
     timeout: 30
 
   mysql:
-    enabled: true
+    enabled: false
     port: 3306
     timeout: 30
 

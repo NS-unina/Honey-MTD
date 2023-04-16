@@ -15,6 +15,7 @@ Vagrant.configure("2") do |config|
   #config.vm.box = "ubuntu/trusty64"
     config.vm.define "int_service" do |int_service|
       int_service.vm.box = "ubuntu/trusty64"
+      int_service.vm.synced_folder "int_service/", "/home/emma/ubuntu/int_service"
       int_service.vm.network :forwarded_port, guest: 22, host: 3200, id: 'ssh'
       int_service.vm.network "public_network", bridge: "tap2", ip: "192.168.3.11"
       
@@ -86,6 +87,31 @@ Vagrant.configure("2") do |config|
 
       ext_cowrie.vm.provision "shell", path: "~/ubuntu/configurations/ext_cowrie.sh"
     end
+
+    config.vm.define "ext_heralding" do |ext_heralding|
+      ext_heralding.vm.box = "ubuntu/focal64"
+      ext_heralding.vm.synced_folder "ext_heralding/", "/home/emma/ubuntu/ext_heralding"
+      ext_heralding.vm.network :forwarded_port, guest: 22, host: 3204, id: 'ssh'
+      ext_heralding.vm.network "public_network", bridge: "tap7", ip: "192.168.4.11"
+    
+      ext_heralding.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.3.0/24 via 192.168.4.1 dev enp0s8"
+
+      ext_heralding.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.5.0/24 via 192.168.4.1 dev enp0s8"
+
+      ext_heralding.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.10.0/24 via 192.168.4.1 dev enp0s8"
+
+      ext_heralding.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.11.0/24 via 192.168.4.1 dev enp0s8"
+
+      ext_heralding.vm.provision "shell", path: "~/ubuntu/configurations/ext_heralding.sh"
+    end
     
     config.vm.define "elk" do |elk|
       elk.vm.box = "ubuntu/focal64"
@@ -108,9 +134,34 @@ Vagrant.configure("2") do |config|
 
       elk.vm.provision "shell",
         run: "always",
-        inline: "ip route add 192.168.10.0/24 via 192.168.5.1 dev enp0s8"
+        inline: "ip route add 192.168.10.0/24 via 192.168.11.1 dev enp0s9"
 
       elk.vm.provision "shell", path: "~/ubuntu/configurations/elk.sh"
+    end
+    
+    config.vm.define "dmz_heralding" do |dmz_heralding|
+      dmz_heralding.vm.box = "ubuntu/focal64"
+      dmz_heralding.vm.synced_folder "dmz_heralding/", "/home/emma/ubuntu/dmz_heralding"
+      dmz_heralding.vm.network :forwarded_port, guest: 22, host: 3205, id: 'ssh'
+      dmz_heralding.vm.network "public_network", bridge: "tap10", ip: "192.168.10.10"
+    
+      dmz_heralding.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.3.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_heralding.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.5.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_heralding.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.4.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_heralding.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.11.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_heralding.vm.provision "shell", path: "~/ubuntu/configurations/dmz_heralding.sh"
     end
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
