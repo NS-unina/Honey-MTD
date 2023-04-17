@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+    int_host: 
+        image: emmame/simple_host
+        container_name: int_host
+        cap_add:
+          - NET_ADMIN 
+        tty: true
+        stdin_open: true
+        privileged: true
+    dmz_host:
+        image: emmame/external_host
+        container_name: ext_host
+        cap_add:
+          - NET_ADMIN 
+        tty: true
+        stdin_open: true
+        privileged: true
+    dmz_service:
+        image: emmame/ssh_server
+        container_name: ssh_server
+        cap_add:
+          - NET_ADMIN 
+        tty: true
+        stdin_open: true
+        privileged: true
+    controller:
+        image: emmame/controller
+        container_name: controller
+        cap_add:
+          - NET_ADMIN 
+        tty: true
+        stdin_open: true
+        privileged: true
+

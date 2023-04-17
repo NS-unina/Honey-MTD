@@ -46,7 +46,12 @@ git clone https://github.com/Yelp/elastalert.git
 cd elastalert
 sudo pip install "setuptools>=11.3"
 sudo pip install pyOpenSSL
-sudo pip install "elasticsearch>=5.0.0"
+sudo pip install "elasticsearch==7.13.4"
 cp /home/emma/ubuntu/elk/config.yaml /home/vagrant/elastalert
 mkdir rules
-cp /home/emma/ubuntu/elk/rules/example_new_term.yaml /home/vagrant/elastalert/rules
+cp /home/emma/ubuntu/elk/rules/example_new_term.yaml /home/vagrant/elastalert/rules 
+cp /home/emma/ubuntu/elk/rules/example_new_term_ext.yaml /home/vagrant/elastalert/rules
+cd 
+sudo apt-get install -y elastalert
+#elastalert-create-index
+pip install prison

@@ -7,13 +7,13 @@ HERALDING_INDEX = 1
 SSH_INDEX = 0
 TELNET_INDEX= 1
 FTP_INDEX = 2
-POP3_INDEX = 3
+SOCKS5_INDEX = 3
 
 # list of honeypots
 honeypots = [t.cowrie, t.heralding1]
 
 # list of services
-services = ["ssh", "telnet", "ftp", "pop3"]
+services = ["ssh", "telnet", "ftp", "socks5"]
 
 # service map (honeypots x services): rows = honeypot, columns = services supported
 sm = [[1, 1, 0, 0], [1, 0, 1, 1]]

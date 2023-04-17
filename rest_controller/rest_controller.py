@@ -66,23 +66,21 @@ class RestController(ExampleSwitch13):
         self.del_rules(datapath, cookie)
 
     # REDIRECTION TO COWRIE CHANGING DEST PORT
-    def redirect_to_cowrie_smtp_telnet(self, dpid, src_ip):
+    def redirect_to_cowrie_telnet(self, dpid, src_ip):
         datapath = self.switches.get(dpid)
         parser = datapath.ofproto_parser
         actions = [parser.OFPActionSetField(eth_dst=t.gw1.get_MAC_addr()),
                    parser.OFPActionSetField(ipv4_dst=t.cowrie.get_ip_addr()),
-                   parser.OFPActionSetField(tcp_dst=23),
                    parser.OFPActionOutput(t.gw1.get_ovs_port())]        
         match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip,
-                                ipv4_dst=t.service.get_ip_addr(), ip_proto=6, tcp_dst=25)   
+                                ipv4_dst=t.service.get_ip_addr(), ip_proto=6, tcp_dst=23)   
         self.add_flow(datapath, 1000, match, actions, 1)
 
-    def change_cowrie_src_smtp_telnet(self, dpid, src_ip):
+    def change_cowrie_src_telnet(self, dpid, src_ip):
         datapath = self.switches.get(dpid)
         parser = datapath.ofproto_parser
         out_port = u.host_to_port(t.subnet1, src_ip)
         actions = [parser.OFPActionSetField(ipv4_src=t.service.get_ip_addr()),
-                   parser.OFPActionSetField(tcp_src=25),
                    parser.OFPActionOutput(out_port)]        
         match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.cowrie.get_ip_addr(), ipv4_dst=src_ip, 
                                 eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=23)
@@ -163,20 +161,20 @@ class RestController(ExampleSwitch13):
                                 eth_src=src_mac, ip_proto=6, tcp_dst=80)
         self.add_flow(datapath, 1000, match, actions, 0)
 
-    def redirect_pop3_syn(self, dpid, src_ip):
+    def redirect_socks5_syn(self, dpid, src_ip):
         datapath = self.switches.get(dpid)
         parser = datapath.ofproto_parser        
         src_mac = u.host_to_mac(t.subnet1, src_ip)
-        self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 110, datapath)
+        self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 1080, datapath)
 
         actions = [parser.OFPActionSetField(eth_dst=t.gw1.get_MAC_addr()),
                    parser.OFPActionSetField(ipv4_dst=t.heralding1.get_ip_addr()),
                    parser.OFPActionOutput(t.gw1.get_ovs_port())]       
         match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip, ipv4_dst=t.service.get_ip_addr(), 
-                                eth_src=src_mac, ip_proto=6, tcp_dst=110)
+                                eth_src=src_mac, ip_proto=6, tcp_dst=1080)
         self.add_flow(datapath, 1000, match, actions, 0)
 
-    def change_heralding_src_pop3(self, dpid, src_ip):
+    def change_heralding_src_socks5(self, dpid, src_ip):
         datapath = self.switches.get(dpid)
         parser = datapath.ofproto_parser
         out_port = u.host_to_port(t.subnet1, src_ip) 
@@ -184,7 +182,7 @@ class RestController(ExampleSwitch13):
                    parser.OFPActionSetField(ipv4_src=t.service.get_ip_addr()),
                    parser.OFPActionOutput(out_port)]       
         match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.heralding1.get_ip_addr(), ipv4_dst=src_ip, 
-                                eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=110)
+                                eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=1080)
         self.add_flow(datapath, 1000, match, actions, 0)
 
 
@@ -287,8 +285,8 @@ class SimpleSwitchController(ControllerBase):
         else:
             return Response(status=400)
     
-    @route('restswitch', '/rest_controller/redirect_to_cowrie_smtp_telnet', methods=['POST'])
-    def redirect_to_cowrie_smtp_telnet(self, req, **kwargs):
+    @route('restswitch', '/rest_controller/redirect_to_cowrie_telnet', methods=['POST'])
+    def redirect_to_cowrie_telnet(self, req, **kwargs):
         richiesta = req.json
         simple_switch = self.simple_switch_app
 
@@ -298,8 +296,8 @@ class SimpleSwitchController(ControllerBase):
             src_IP = richiesta['Source_IP']
             dpid = int(dpid)       
             man.sb[man.COWRIE_INDEX][man.TELNET_INDEX] = 1     
-            simple_switch.redirect_to_cowrie_smtp_telnet(dpid, src_IP)
-            simple_switch.change_cowrie_src_smtp_telnet(dpid, src_IP)
+            simple_switch.redirect_to_cowrie_telnet(dpid, src_IP)
+            simple_switch.change_cowrie_src_telnet(dpid, src_IP)
             return Response(status=200)
         else:
             return Response(status=400)
@@ -315,10 +313,10 @@ class SimpleSwitchController(ControllerBase):
             src_IP = richiesta['Source_IP']
             dpid = int(dpid)       
 
-            man.sb[man.HERALDING_INDEX][man.POP3_INDEX] = 1
+            man.sb[man.HERALDING_INDEX][man.SOCKS5_INDEX] = 1
             simple_switch.drop_http_syn(dpid, src_IP)
-            simple_switch.redirect_pop3_syn(dpid, src_IP)
-            simple_switch.change_heralding_src_pop3(dpid, src_IP)
+            simple_switch.redirect_socks5_syn(dpid, src_IP)
+            simple_switch.change_heralding_src_socks5(dpid, src_IP)
      
             #simple_switch.change_http_port(dpid, src_IP)
             #simple_switch.drop_pop3_rst(dpid, src_IP)
