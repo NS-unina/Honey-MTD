@@ -26,7 +26,7 @@ services:
         stdin_open: true
         privileged: true
     controller:
-        image: emmame/controller
+        image: emmame/ryu_controller
         container_name: controller
         cap_add:
           - NET_ADMIN 
