@@ -13,6 +13,7 @@ Vagrant.configure("2") do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
   #config.vm.box = "ubuntu/trusty64"
+
     config.vm.define "int_service" do |int_service|
       int_service.vm.box = "ubuntu/trusty64"
       int_service.vm.synced_folder "int_service/", "/home/emma/ubuntu/int_service"
@@ -35,7 +36,33 @@ Vagrant.configure("2") do |config|
         run: "always",
         inline: "ip route add 192.168.11.0/24 via 192.168.3.1 dev eth1"
       
-      int_service.vm.provision "shell", path: "~/ubuntu/configurations/int_service.sh"
+      int_service.vm.provision "shell", path: "./configurations/int_service.sh"
+    end
+
+    config.vm.define "elk" do |elk|
+      elk.vm.box = "ubuntu/focal64"
+        elk.vm.provider "virtualbox" do |elk1|
+          # Customize the amount of memory on the VM:
+	  elk1.memory = "8192"
+	end
+      elk.vm.synced_folder "elk/", "/home/emma/ubuntu/elk"
+      elk.vm.network :forwarded_port, guest: 22, host: 3203, id: 'ssh'
+      elk.vm.network "public_network", bridge: "tap5", ip: "192.168.5.10"
+      elk.vm.network "public_network", bridge: "tap11", ip: "192.168.11.10"
+      
+      elk.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.3.0/24 via 192.168.5.1 dev enp0s8"
+
+      elk.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.4.0/24 via 192.168.5.1 dev enp0s8"
+
+      elk.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.10.0/24 via 192.168.11.1 dev enp0s9"
+
+      elk.vm.provision "shell", path: "./configurations/elk.sh"
     end
 
     config.vm.define "int_heralding" do |int_heralding|
@@ -60,7 +87,7 @@ Vagrant.configure("2") do |config|
         run: "always",
         inline: "ip route add 192.168.11.0/24 via 192.168.3.1 dev enp0s8"
 
-      int_heralding.vm.provision "shell", path: "~/ubuntu/configurations/int_heralding.sh"
+      int_heralding.vm.provision "shell", path: "./configurations/int_heralding.sh"
     end
     
     config.vm.define "ext_cowrie" do |ext_cowrie|
@@ -85,7 +112,7 @@ Vagrant.configure("2") do |config|
         run: "always",
         inline: "ip route add 192.168.11.0/24 via 192.168.4.1 dev enp0s8"
 
-      ext_cowrie.vm.provision "shell", path: "~/ubuntu/configurations/ext_cowrie.sh"
+      ext_cowrie.vm.provision "shell", path: "./configurations/ext_cowrie.sh"
     end
 
     config.vm.define "ext_heralding" do |ext_heralding|
@@ -110,35 +137,9 @@ Vagrant.configure("2") do |config|
         run: "always",
         inline: "ip route add 192.168.11.0/24 via 192.168.4.1 dev enp0s8"
 
-      ext_heralding.vm.provision "shell", path: "~/ubuntu/configurations/ext_heralding.sh"
+      ext_heralding.vm.provision "shell", path: "./configurations/ext_heralding.sh"
     end
-    
-    config.vm.define "elk" do |elk|
-      elk.vm.box = "ubuntu/focal64"
-        config.vm.provider "virtualbox" do |vb|
-          # Customize the amount of memory on the VM:
-	  vb.memory = "8192"
-	end
-      elk.vm.synced_folder "elk/", "/home/emma/ubuntu/elk"
-      elk.vm.network :forwarded_port, guest: 22, host: 3203, id: 'ssh'
-      elk.vm.network "public_network", bridge: "tap5", ip: "192.168.5.10"
-      elk.vm.network "public_network", bridge: "tap11", ip: "192.168.11.10"
-      
-      elk.vm.provision "shell",
-        run: "always",
-        inline: "ip route add 192.168.3.0/24 via 192.168.5.1 dev enp0s8"
-
-      elk.vm.provision "shell",
-        run: "always",
-        inline: "ip route add 192.168.4.0/24 via 192.168.5.1 dev enp0s8"
-
-      elk.vm.provision "shell",
-        run: "always",
-        inline: "ip route add 192.168.10.0/24 via 192.168.11.1 dev enp0s9"
-
-      elk.vm.provision "shell", path: "~/ubuntu/configurations/elk.sh"
-    end
-    
+        
     config.vm.define "dmz_heralding" do |dmz_heralding|
       dmz_heralding.vm.box = "ubuntu/focal64"
       dmz_heralding.vm.synced_folder "dmz_heralding/", "/home/emma/ubuntu/dmz_heralding"
@@ -161,7 +162,7 @@ Vagrant.configure("2") do |config|
         run: "always",
         inline: "ip route add 192.168.11.0/24 via 192.168.10.1 dev enp0s8"
 
-      dmz_heralding.vm.provision "shell", path: "~/ubuntu/configurations/dmz_heralding.sh"
+      dmz_heralding.vm.provision "shell", path: "./configurations/dmz_heralding.sh"
     end
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
