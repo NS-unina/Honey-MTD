@@ -9,6 +9,8 @@ services:
         tty: true
         stdin_open: true
         privileged: true
+        volumes:
+          - ./configurations/int_host:/home
     dmz_host:
         image: emmame/external_host
         container_name: ext_host
@@ -17,20 +19,33 @@ services:
         tty: true
         stdin_open: true
         privileged: true
+        volumes:
+          - ./configurations/ext_host:/home
     dmz_service:
-        image: emmame/ssh_server
+        image: emmame/ssh
         container_name: ssh_server
         cap_add:
           - NET_ADMIN 
         tty: true
         stdin_open: true
         privileged: true
+        volumes:
+          - ./configurations/ssh_server:/home
+        command: >-
+          sh -c "ip route add 192.168.11.0/24 via 192.168.10.1 dev eth1 &&
+          ip route add 192.168.3.0/24 via 192.168.10.1 dev eth1 &&
+          ip route add 192.168.4.0/24 via 192.168.10.1 dev eth1 &&
+          ip route add 192.168.5.0/24 via 192.168.10.1 dev eth1"
     controller:
-        image: emmame/ryu_controller
+        image: emmame/ryu
         container_name: controller
         cap_add:
           - NET_ADMIN 
         tty: true
         stdin_open: true
         privileged: true
+        command: >-
+          sh -c "ip route add 192.168.10.0/24 via 192.168.11.1 dev eth2 &&
+          ip route add 192.168.3.0/24 via 192.168.5.1 dev eth1 &&
+          ip route add 192.168.4.0/24 via 192.168.5.1 dev eth1"
 
