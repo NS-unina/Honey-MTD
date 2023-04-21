@@ -55,3 +55,4 @@ cd
 sudo apt-get install -y elastalert
 #elastalert-create-index
 pip install prison
+cp /home/emma/ubuntu/elk/conf.sh /home/vagrant

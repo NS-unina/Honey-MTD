@@ -19,6 +19,7 @@ source heralding/bin/activate
 pip3 install heralding
 cp /home/emma/ubuntu/shared/heralding.yml /home/vagrant/heralding/lib/python3.8/site-packages/heralding/heralding.yml
 #nohup heralding &
+cp /home/emma/ubuntu/shared/conf.sh /home/vagrant
 
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.7.0-amd64.deb
 sudo dpkg -i filebeat-8.7.0-amd64.deb
