@@ -16,7 +16,7 @@ echo "REDIRECT TO COWRIE SMTP TELNET"
 curl -X POST \
    -H 'Content-Type: application/json' \
    -d "{\"Source_IP\": \"$1\", \"Dpid\": \"85884017520972\"}" \
-   http://192.168.5.100:8080/rest_controller/redirect_to_cowrie_smtp_telnet
+   http://192.168.5.100:8080/rest_controller/redirect_to_cowrie_telnet
 
 echo "REDIRECT TO COWRIE HTTP PORT HOPPING"
 curl -X POST \

@@ -58,4 +58,4 @@ alert:
 
 # (required, email specific)
 # a list of email addresses to send alerts to
-command: ["/home/emma/ubuntu/elk/connect.sh", "{source_ip}"]
+command: ["/home/vagrant/connect.sh", "{source_ip}"]

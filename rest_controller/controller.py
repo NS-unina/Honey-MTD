@@ -44,9 +44,11 @@ class ExampleSwitch13(app_manager.RyuApp):
         parser = datapath.ofproto_parser
         dpid = datapath.id
 
+        print(dpid)
+
         if dpid == t.br0_dpid:
             print(dpid)
-            self.port = t.ports[random.randint(0, 4)]
+            self.port = t.ports[random.randint(0, 3)]
             # install the table-miss flow entry.
             match = parser.OFPMatch()
             actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
@@ -81,7 +83,7 @@ class ExampleSwitch13(app_manager.RyuApp):
                 port_dst = values[3][1]
                 self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
             
-                self.port = t.ports[random.randint(0, 4)]
+                self.port = t.ports[random.randint(0, 3)]
                 self.redirect_protocol_syn(parser, datapath, self.port)
                 self.change_heralding_src_protocol(parser, datapath, self.port)
         
@@ -274,8 +276,8 @@ class ExampleSwitch13(app_manager.RyuApp):
         # PERMIT tcp input to service port 22
         self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 22, datapath)
 
-        # PERMIT tcp input to service port 25
-        self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 25, datapath)
+        # PERMIT tcp input to service port 23
+        self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 23, datapath)
 
         # PERMIT tcp input to service port 80
         self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 80, datapath)

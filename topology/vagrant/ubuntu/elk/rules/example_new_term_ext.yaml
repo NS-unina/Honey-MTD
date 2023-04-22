@@ -58,5 +58,5 @@ alert:
 
 # (required, email specific)
 # a list of email addresses to send alerts to
-command: ["/home/emma/ubuntu/elk/connect_ext.sh", "{source_ip}"]
+command: ["/home/vagrant/connect_ext.sh", "{source_ip}"]
 

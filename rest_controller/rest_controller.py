@@ -66,25 +66,25 @@ class RestController(ExampleSwitch13):
         self.del_rules(datapath, cookie)
 
     # REDIRECTION TO COWRIE CHANGING DEST PORT
-    def redirect_to_cowrie_telnet(self, dpid, src_ip):
-        datapath = self.switches.get(dpid)
-        parser = datapath.ofproto_parser
-        actions = [parser.OFPActionSetField(eth_dst=t.gw1.get_MAC_addr()),
-                   parser.OFPActionSetField(ipv4_dst=t.cowrie.get_ip_addr()),
-                   parser.OFPActionOutput(t.gw1.get_ovs_port())]        
-        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip,
-                                ipv4_dst=t.service.get_ip_addr(), ip_proto=6, tcp_dst=23)   
-        self.add_flow(datapath, 1000, match, actions, 1)
+    # def redirect_to_cowrie_telnet(self, dpid, src_ip):
+    #     datapath = self.switches.get(dpid)
+    #     parser = datapath.ofproto_parser
+    #     actions = [parser.OFPActionSetField(eth_dst=t.gw1.get_MAC_addr()),
+    #                parser.OFPActionSetField(ipv4_dst=t.cowrie.get_ip_addr()),
+    #                parser.OFPActionOutput(t.gw1.get_ovs_port())]        
+    #     match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip,
+    #                             ipv4_dst=t.service.get_ip_addr(), ip_proto=6, tcp_dst=23)   
+    #     self.add_flow(datapath, 1000, match, actions, 1)
 
-    def change_cowrie_src_telnet(self, dpid, src_ip):
-        datapath = self.switches.get(dpid)
-        parser = datapath.ofproto_parser
-        out_port = u.host_to_port(t.subnet1, src_ip)
-        actions = [parser.OFPActionSetField(ipv4_src=t.service.get_ip_addr()),
-                   parser.OFPActionOutput(out_port)]        
-        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.cowrie.get_ip_addr(), ipv4_dst=src_ip, 
-                                eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=23)
-        self.add_flow(datapath, 1000, match, actions, 1)
+    # def change_cowrie_src_telnet(self, dpid, src_ip):
+    #     datapath = self.switches.get(dpid)
+    #     parser = datapath.ofproto_parser
+    #     out_port = u.host_to_port(t.subnet1, src_ip)
+    #     actions = [parser.OFPActionSetField(ipv4_src=t.service.get_ip_addr()),
+    #                parser.OFPActionOutput(out_port)]        
+    #     match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.cowrie.get_ip_addr(), ipv4_dst=src_ip, 
+    #                             eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=23)
+    #     self.add_flow(datapath, 1000, match, actions, 1)
        
     # REDIRECTION TO COWRIE
     # Presuppongo che applico il MTD esclusivamente nella subnet1 (rete interna)
@@ -245,7 +245,8 @@ class SimpleSwitchController(ControllerBase):
         if richiesta:
             dpid = richiesta['Dpid']
             src_IP = richiesta['Source_IP']
-            dpid = int(dpid)
+            #dpid = int(dpid)
+            dpid = t.br0_dpid
 
             a = man.sm[man.COWRIE_INDEX][man.SSH_INDEX]
             b = man.sb[man.COWRIE_INDEX][man.SSH_INDEX]
@@ -277,7 +278,8 @@ class SimpleSwitchController(ControllerBase):
             print(richiesta)
             dpid = richiesta['Dpid']
             src_IP = richiesta['Source_IP']
-            dpid = int(dpid)        
+            #dpid = int(dpid)     
+            dpid = t.br0_dpid   
             man.sb[man.HERALDING_INDEX][man.FTP_INDEX] = 1    
             simple_switch.redirect_to_heralding_ftp(dpid, src_IP)
             simple_switch.change_heralding_src_ftp(dpid, src_IP)
@@ -294,7 +296,8 @@ class SimpleSwitchController(ControllerBase):
             print(richiesta)
             dpid = richiesta['Dpid']
             src_IP = richiesta['Source_IP']
-            dpid = int(dpid)       
+            #dpid = int(dpid)    
+            dpid = t.br0_dpid
             man.sb[man.COWRIE_INDEX][man.TELNET_INDEX] = 1     
             simple_switch.redirect_to_cowrie_telnet(dpid, src_IP)
             simple_switch.change_cowrie_src_telnet(dpid, src_IP)
@@ -311,8 +314,8 @@ class SimpleSwitchController(ControllerBase):
             print(richiesta)
             dpid = richiesta['Dpid']
             src_IP = richiesta['Source_IP']
-            dpid = int(dpid)       
-
+            #dpid = int(dpid)       
+            dpid = t.br0_dpid
             man.sb[man.HERALDING_INDEX][man.SOCKS5_INDEX] = 1
             simple_switch.drop_http_syn(dpid, src_IP)
             simple_switch.redirect_socks5_syn(dpid, src_IP)
@@ -334,8 +337,8 @@ class SimpleSwitchController(ControllerBase):
             print(richiesta)
             dpid = richiesta['Dpid']
             src_IP = richiesta['Source_IP']
-            dpid = int(dpid) 
-
+            #dpid = int(dpid) 
+            dpid = t.br1_dpid
             a = man.sm[man.COWRIE_INDEX][man.SSH_INDEX]
             b = man.sb[man.COWRIE_INDEX][man.SSH_INDEX]
 

@@ -56,3 +56,24 @@ sudo iptables -t nat -A POSTROUTING -o vlan11 -j MASQUERADE
 
 echo "Connect br1 to controller 192.168.11.100:6633"
 sudo ovs-vsctl set-controller br1 tcp:192.168.11.100:6633
+
+sudo iptables -A FORWARD -i vlan1 -o vlan2 -j ACCEPT
+sudo iptables -A FORWARD -i vlan2 -o vlan1 -j ACCEPT
+sudo iptables -A FORWARD -i vlan1 -o vlan3 -j ACCEPT
+sudo iptables -A FORWARD -i vlan3 -o vlan1 -j ACCEPT
+sudo iptables -A FORWARD -i vlan1 -o vlan10 -j ACCEPT
+sudo iptables -A FORWARD -i vlan10 -o vlan1 -j ACCEPT
+sudo iptables -A FORWARD -i vlan1 -o vlan11 -j ACCEPT
+sudo iptables -A FORWARD -i vlan11 -o vlan1 -j ACCEPT
+sudo iptables -A FORWARD -i vlan2 -o vlan3 -j ACCEPT
+sudo iptables -A FORWARD -i vlan3 -o vlan2 -j ACCEPT
+sudo iptables -A FORWARD -i vlan2 -o vlan10 -j ACCEPT
+sudo iptables -A FORWARD -i vlan10 -o vlan2 -j ACCEPT
+sudo iptables -A FORWARD -i vlan2 -o vlan11 -j ACCEPT
+sudo iptables -A FORWARD -i vlan11 -o vlan2 -j ACCEPT
+sudo iptables -A FORWARD -i vlan3 -o vlan10 -j ACCEPT
+sudo iptables -A FORWARD -i vlan10 -o vlan3 -j ACCEPT
+sudo iptables -A FORWARD -i vlan3 -o vlan11 -j ACCEPT
+sudo iptables -A FORWARD -i vlan11 -o vlan3 -j ACCEPT
+sudo iptables -A FORWARD -i vlan11 -o vlan10 -j ACCEPT
+sudo iptables -A FORWARD -i vlan10 -o vlan11 -j ACCEPT
