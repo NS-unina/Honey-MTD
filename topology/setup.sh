@@ -2,7 +2,7 @@
 
 echo "Restoring Network ..."
 
-if sudo ovs-ofctl show br0 | grep -q "(tap1)"; then
+if sudo ovs-vsctl show | grep -w -q "Port tap1"; then
    sudo ovs-vsctl del-port tap1
 fi
 
@@ -19,7 +19,7 @@ fi
 
 
 
-if sudo ovs-ofctl show br0 | grep -q "(tap2)"; then
+if sudo ovs-vsctl show | grep -w -q "Port tap2"; then
    sudo ovs-vsctl del-port tap2
 fi
 
@@ -36,7 +36,7 @@ fi
 
 
 
-if sudo ovs-ofctl show br0 | grep -q "(tap3)"; then
+if sudo ovs-vsctl show | grep -w -q "Port tap3"; then
    sudo ovs-vsctl del-port tap3
 fi
 
@@ -53,7 +53,7 @@ fi
 
 
 
-if sudo ovs-ofctl show br0 | grep -q "(tap4)"; then
+if sudo ovs-vsctl show | grep -w -q "Port tap4"; then
    sudo ovs-vsctl del-port tap4
 fi
 
@@ -70,7 +70,7 @@ fi
 
 
 
-if sudo ovs-ofctl show br0 | grep -q "(tap7)"; then
+if sudo ovs-vsctl show | grep -w -q "Port tap7"; then
    sudo ovs-vsctl del-port tap7
 fi
 
@@ -87,7 +87,7 @@ fi
 
 
 
-if sudo ovs-ofctl show br0 | grep -q "(tap5)"; then
+if sudo ovs-vsctl show | grep -w -q "Port tap5"; then
    sudo ovs-vsctl del-port tap5
 fi
 
@@ -104,7 +104,7 @@ fi
 
 
 
-if sudo ovs-ofctl show br0 | grep -q "(tap6)"; then
+if sudo ovs-vsctl show | grep -w -q "Port tap6"; then
    sudo ovs-vsctl del-port tap6
 fi
 
@@ -120,7 +120,7 @@ else
 fi
 
 
-if sudo ovs-ofctl show br1 | grep -q "(tap10)"; then
+if sudo ovs-vsctl show | grep -w -q "Port tap10"; then
    sudo ovs-vsctl del-port tap10
 fi
 
@@ -137,7 +137,7 @@ fi
 
 
 
-if sudo ovs-ofctl show br1 | grep -q "(tap11)"; then
+if sudo ovs-vsctl show | grep -w -q "Port tap11"; then
    sudo ovs-vsctl del-port tap11
 fi
 
