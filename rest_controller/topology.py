@@ -72,5 +72,5 @@ network2.add_subnet(subnet5)
 
 ports = [5432, 143, 5900, 3306]
 
-br0_dpid = 125479132894530
-br1_dpid = 125914573667142
+br0_dpid = 0
+br1_dpid = 0

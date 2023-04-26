@@ -36,6 +36,8 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.mac_to_ip = {}
         self.port = None
         self.attacker = None
+        self.dpid_br0 = 0
+        self.dpid_br1 = 0
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -45,6 +47,12 @@ class ExampleSwitch13(app_manager.RyuApp):
         dpid = datapath.id
 
         print(dpid)
+        if self.dpid_br0 != 0:
+            self.dpid_br1 = dpid
+            t.br1_dpid = dpid
+        else:
+            self.dpid_br0 = dpid
+            t.br0_dpid = dpid
 
         if dpid == t.br0_dpid:
             print(dpid)
