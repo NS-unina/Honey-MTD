@@ -31,6 +31,7 @@ pip install --upgrade -r requirements.txt
 pip install pymongo
 
 sudo cp /home/emma/ubuntu/ext_cowrie/conf.sh /home/cowrie1
+sudo cp /home/emma/ubuntu/ext_cowrie/start.sh /home/vagrant
 
 sudo cp /home/emma/ubuntu/ext_cowrie/cowrie.cfg /home/cowrie1/cowrie/etc
 sudo touch /etc/authbind/byport/22

@@ -18,7 +18,7 @@ Vagrant.configure("2") do |config|
       int_service.vm.box = "ubuntu/trusty64"
       int_service.vm.synced_folder "./int_service", "/home/emma/ubuntu/int_service"
       int_service.vm.network :forwarded_port, guest: 22, host: 3200, id: 'ssh'
-      int_service.vm.network "public_network", bridge: "tap2", ip: "192.168.3.11"
+      int_service.vm.network "public_network", bridge: "tap2", mac: "0800276dec72", ip: "192.168.3.11"
       
       int_service.vm.provision "shell",
         run: "always",
@@ -47,8 +47,8 @@ Vagrant.configure("2") do |config|
 	end
       elk.vm.synced_folder "elk/", "/home/emma/ubuntu/elk"
       elk.vm.network :forwarded_port, guest: 22, host: 3203, id: 'ssh'
-      elk.vm.network "public_network", bridge: "tap5", ip: "192.168.5.10"
-      elk.vm.network "public_network", bridge: "tap11", ip: "192.168.11.10"
+      elk.vm.network "public_network", bridge: "tap5", mac: "0800277db7b8", ip: "192.168.5.10"
+      elk.vm.network "public_network", bridge: "tap11", mac: "080027f56b90", ip: "192.168.11.10"
       
       elk.vm.provision "shell",
         run: "always",
@@ -69,7 +69,7 @@ Vagrant.configure("2") do |config|
       int_heralding.vm.box = "ubuntu/focal64"
       int_heralding.vm.synced_folder "shared/", "/home/emma/ubuntu/shared"
       int_heralding.vm.network :forwarded_port, guest: 22, host: 3201, id: 'ssh'
-      int_heralding.vm.network "public_network", bridge: "tap3", ip: "192.168.3.12"
+      int_heralding.vm.network "public_network", bridge: "tap3", mac: "0800276c0abf", ip: "192.168.3.12"
     
       int_heralding.vm.provision "shell",
         run: "always",
@@ -94,7 +94,7 @@ Vagrant.configure("2") do |config|
       ext_cowrie.vm.box = "ubuntu/focal64"
       ext_cowrie.vm.synced_folder "ext_cowrie/", "/home/emma/ubuntu/ext_cowrie"
       ext_cowrie.vm.network :forwarded_port, guest: 22, host: 3202, id: 'ssh'
-      ext_cowrie.vm.network "public_network", bridge: "tap4", ip: "192.168.4.10"
+      ext_cowrie.vm.network "public_network", bridge: "tap4", mac: "080027b70e58", ip: "192.168.4.10"
     
       ext_cowrie.vm.provision "shell",
         run: "always",
@@ -119,7 +119,7 @@ Vagrant.configure("2") do |config|
       ext_heralding.vm.box = "ubuntu/focal64"
       ext_heralding.vm.synced_folder "ext_heralding/", "/home/emma/ubuntu/ext_heralding"
       ext_heralding.vm.network :forwarded_port, guest: 22, host: 3204, id: 'ssh'
-      ext_heralding.vm.network "public_network", bridge: "tap7", ip: "192.168.4.11"
+      ext_heralding.vm.network "public_network", bridge: "tap7", mac: "0800276df998", ip: "192.168.4.11"
     
       ext_heralding.vm.provision "shell",
         run: "always",
@@ -144,7 +144,7 @@ Vagrant.configure("2") do |config|
       dmz_heralding.vm.box = "ubuntu/focal64"
       dmz_heralding.vm.synced_folder "dmz_heralding/", "/home/emma/ubuntu/dmz_heralding"
       dmz_heralding.vm.network :forwarded_port, guest: 22, host: 3205, id: 'ssh'
-      dmz_heralding.vm.network "public_network", bridge: "tap10", ip: "192.168.10.10"
+      dmz_heralding.vm.network "public_network", bridge: "tap10", mac: "0800272c3092", ip: "192.168.10.10"
     
       dmz_heralding.vm.provision "shell",
         run: "always",
