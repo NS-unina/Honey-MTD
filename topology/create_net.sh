@@ -15,6 +15,14 @@ sudo sysctl -w net.ipv4.ip_forward=1
 echo "OVS setup"
 sudo ovs-vsctl add-br br0
 sudo ovs-vsctl add-br br1
+sudo ovs-vsctl set bridge br0 other_config:hwaddr=3a:4d:a7:05:2a:45
+sudo ovs-vsctl set bridge br1 other_config:hwaddr=3a:4d:a7:05:2a:46
+
+# sudo ovs-vsctl set bridge br0 other-config:datapath-id=209326269119040
+# sudo ovs-vsctl set bridge br1 other-config:datapath-id=187971798259276
+
+#209544804549707
+#33227011233353
 
 echo "Subnet1: IP 192.168.3.0/24"
 sudo ovs-vsctl add-port br0 vlan1 -- set interface vlan1 type=internal ofport=1
@@ -77,3 +85,10 @@ sudo iptables -A FORWARD -i vlan3 -o vlan11 -j ACCEPT
 sudo iptables -A FORWARD -i vlan11 -o vlan3 -j ACCEPT
 sudo iptables -A FORWARD -i vlan11 -o vlan10 -j ACCEPT
 sudo iptables -A FORWARD -i vlan10 -o vlan11 -j ACCEPT
+
+sudo ovs-vsctl -- add-port br0 patch0 -- set interface patch0 type=patch ofport=45 options:peer=patch1 \
+-- add-port br1 patch1 -- set interface patch1 type=patch ofport=46 options:peer=patch0
+
+sudo iptables -t nat -A POSTROUTING -o patch0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o patch1 -j MASQUERADE
+

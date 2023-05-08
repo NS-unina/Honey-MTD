@@ -66,10 +66,10 @@ fi
 
 sudo netplan apply
 
-if ifconfig | grep -q -A2 "wlp0s20f3:*" | grep -q "inet "; then
-   echo "wlp0s20f3 still exists"
-else
-   sudo ifconfig wlp0s20f3 192.168.92.106/24 up
-   sudo route add default gw 192.168.92.68 wlp0s20f3
-fi
-sleep 5
+# if ifconfig | grep -q -A2 "wlp0s20f3:*" | grep -q "inet "; then
+#    echo "wlp0s20f3 still exists"
+# else
+#    sudo ifconfig wlp0s20f3 192.168.92.106/24 up
+#    sudo route add default gw 192.168.92.68 wlp0s20f3
+# fi
+# sleep 5

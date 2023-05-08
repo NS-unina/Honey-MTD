@@ -14,3 +14,11 @@ sudo service vsftpd start
 sudo apt -y install apache2
 sudo service apache2 enable
 sudo service apache2 start
+
+#auditbeat
+curl -L -O https://artifacts.elastic.co/downloads/beats/auditbeat/auditbeat-8.7.0-amd64.deb
+sudo dpkg -i auditbeat-8.7.0-amd64.deb
+
+sudo cp /home/emma/ubuntu/int_service/auditbeat.yml /etc/auditbeat/auditbeat.yml
+sudo service auditbeat start
+sudo systemctl enable auditbeat

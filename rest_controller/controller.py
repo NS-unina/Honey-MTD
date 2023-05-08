@@ -36,8 +36,8 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.mac_to_ip = {}
         self.port = None
         self.attacker = None
-        self.dpid_br0 = 0
-        self.dpid_br1 = 0
+        self.dpid_br0 = 64105189026373
+        self.dpid_br1 = 64105189026374
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -47,12 +47,6 @@ class ExampleSwitch13(app_manager.RyuApp):
         dpid = datapath.id
 
         print(dpid)
-        if self.dpid_br0 != 0:
-            self.dpid_br1 = dpid
-            t.br1_dpid = dpid
-        else:
-            self.dpid_br0 = dpid
-            t.br0_dpid = dpid
 
         if dpid == t.br0_dpid:
             print(dpid)
@@ -249,10 +243,10 @@ class ExampleSwitch13(app_manager.RyuApp):
                                          '192.168.5.100', datapath)  
              
         # DROP service to elk
-        self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.service.get_ip_addr(), t.service.get_MAC_addr(), 
-                                         t.elk_if1.get_ip_addr(), datapath)        
-        self.drop_tcp_srcIP_srcMAC_dstIP(parser, t.service.get_ip_addr(), t.service.get_MAC_addr(), 
-                                         t.elk_if1.get_ip_addr(), datapath)    
+        # self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.service.get_ip_addr(), t.service.get_MAC_addr(), 
+        #                                  t.elk_if1.get_ip_addr(), datapath)        
+        # self.drop_tcp_srcIP_srcMAC_dstIP(parser, t.service.get_ip_addr(), t.service.get_MAC_addr(), 
+        #                                  t.elk_if1.get_ip_addr(), datapath)    
            
         # DROP service to controller
         self.drop_icmp_srcIP_srcMAC_dstIP(parser, t.service.get_ip_addr(), t.service.get_MAC_addr(), 
@@ -280,6 +274,8 @@ class ExampleSwitch13(app_manager.RyuApp):
 
         # DROP arp input to service
         self.drop_tcp_dstIP(parser, t.service.get_ip_addr(), datapath)
+        self.permit_tcp_host1_host2(parser, t.gw1.get_ip_addr(), t.service.get_ip_addr(), t.service.get_ovs_port(), datapath)
+        self.permit_tcp_host1_host2(parser, t.elk_if1.get_ip_addr(), t.service.get_ip_addr(), t.service.get_ovs_port(), datapath)
 
         # PERMIT tcp input to service port 22
         self.permit_tcp_dstIP_dstPORT(parser, t.service.get_ip_addr(), t.service.get_ovs_port(), 22, datapath)

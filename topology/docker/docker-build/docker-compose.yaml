@@ -2,7 +2,7 @@ version: "3"
 
 services:
     int_host: 
-        image: emmame/simple_host
+        build: ./images/host_imm
         container_name: int_host
         cap_add:
           - NET_ADMIN 
@@ -12,7 +12,7 @@ services:
         volumes:
           - ./configurations/int_host:/home
     dmz_host:
-        image: emmame/external_host
+        build: ./images/host_imm
         container_name: ext_host
         cap_add:
           - NET_ADMIN 
@@ -22,7 +22,7 @@ services:
         volumes:
           - ./configurations/ext_host:/home
     dmz_service:
-        image: emmame/ssh
+        build: ./images/ssh_imm
         container_name: ssh_server
         cap_add:
           - NET_ADMIN 
@@ -32,7 +32,7 @@ services:
         volumes:
           - ./configurations/ssh_server:/home
     controller:
-        image: emmame/ryu
+        build: ./images/ryu_imm
         container_name: controller
         cap_add:
           - NET_ADMIN 

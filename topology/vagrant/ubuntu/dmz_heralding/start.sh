@@ -1,6 +1,4 @@
 #!/bin/sh
 
-cd
-./conf.sh
 . heralding/bin/activate
-sudo ./heralding/bin/heralding
+sudo ./heralding/bin/heralding &

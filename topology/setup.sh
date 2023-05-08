@@ -222,17 +222,17 @@ sudo iptables -A FORWARD -i vlan11 -o vlan3 -j ACCEPT
 sudo iptables -A FORWARD -i vlan11 -o vlan10 -j ACCEPT
 sudo iptables -A FORWARD -i vlan10 -o vlan11 -j ACCEPT
 
-sleep 5
-if sudo ovs-ofctl show br1 | grep -q "(wlp0s20f3)"; then
-   sudo ovs-vsctl del-port wlp0s20f3
-fi
-sudo ovs-vsctl add-port br1 wlp0s20f3 -- set interface wlp0s20f3 ofport=10
-sudo ifconfig wlp0s20f3 0
-sudo ifconfig br1 192.168.92.106/24 up
-sudo route add default gw 192.168.92.68 br1
 
-#sudo ifconfig br1 192.168.1.16/24 up
-#sudo route add default gw 192.168.1.1 br1
-sudo iptables -t nat -A POSTROUTING -o br1 -j MASQUERADE
-sudo iptables -t nat -A POSTROUTING -o wlp0s20f3 -j MASQUERADE
-sudo sed -i '1s/^/nameserver 8.8.8.8\n/' /etc/resolv.conf
+# if sudo ovs-ofctl show br1 | grep -q "(wlp0s20f3)"; then
+#    sudo ovs-vsctl del-port wlp0s20f3
+# fi
+# sudo ovs-vsctl add-port br1 wlp0s20f3 -- set interface wlp0s20f3 ofport=10
+# sudo ifconfig wlp0s20f3 0
+# sudo ifconfig br1 192.168.92.106/24 up
+# sudo route add default gw 192.168.92.68 br1
+
+# #sudo ifconfig br1 192.168.1.16/24 up
+# #sudo route add default gw 192.168.1.1 br1
+# sudo iptables -t nat -A POSTROUTING -o br1 -j MASQUERADE
+# sudo iptables -t nat -A POSTROUTING -o wlp0s20f3 -j MASQUERADE
+# sudo sed -i '1s/^/nameserver 8.8.8.8\n/' /etc/resolv.conf
