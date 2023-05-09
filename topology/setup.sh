@@ -137,6 +137,38 @@ fi
 
 
 
+if sudo ovs-vsctl show | grep -w -q "Port tap12"; then
+   sudo ovs-vsctl del-port tap12
+fi
+
+if ip a | grep -q "tap12:." | grep "state UP"; then
+   :
+elif ip a | grep -q "tap12:." | grep "state DOWN"; then
+   sudo ip link set tap12 up
+   sudo ovs-vsctl add-port br1 tap12 tag=10 -- set interface tap12 ofport=20
+else
+   sudo ip tuntap add name tap12 mode tap
+   sudo ip link set tap12 up
+   sudo ovs-vsctl add-port br1 tap12 tag=10 -- set interface tap12 ofport=20
+fi
+
+if sudo ovs-vsctl show | grep -w -q "Port tap13"; then
+   sudo ovs-vsctl del-port tap13
+fi
+
+if ip a | grep -q "tap13:." | grep "state UP"; then
+   :
+elif ip a | grep -q "tap13:." | grep "state DOWN"; then
+   sudo ip link set tap13 up
+   sudo ovs-vsctl add-port br1 tap13 tag=10 -- set interface tap13 ofport=21
+else
+   sudo ip tuntap add name tap13 mode tap
+   sudo ip link set tap13 up
+   sudo ovs-vsctl add-port br1 tap13 tag=10 -- set interface tap13 ofport=21
+fi
+
+
+
 if sudo ovs-vsctl show | grep -w -q "Port tap11"; then
    sudo ovs-vsctl del-port tap11
 fi
@@ -200,6 +232,11 @@ sudo iptables -t nat -A POSTROUTING -o tap5 -j MASQUERADE
 sudo iptables -t nat -A POSTROUTING -o tap6 -j MASQUERADE
 sudo iptables -t nat -A POSTROUTING -o tap10 -j MASQUERADE
 sudo iptables -t nat -A POSTROUTING -o tap11 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o tap12 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o tap13 -j MASQUERADE
+
+
+
 
 sudo iptables -A FORWARD -i vlan1 -o vlan2 -j ACCEPT
 sudo iptables -A FORWARD -i vlan2 -o vlan1 -j ACCEPT

@@ -13,9 +13,13 @@ Vagrant.configure("2") do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
   #config.vm.box = "ubuntu/trusty64"
-
+    config.vm.provider :virtualbox
     config.vm.define "int_service" do |int_service|
       int_service.vm.box = "ubuntu/focal64"
+      int_service.vm.provider "virtualbox" do |int_service1|
+          # Customize the amount of memory on the VM:
+      int_service1.memory = "512"
+    end
       int_service.vm.synced_folder "./int_service", "/home/emma/ubuntu/int_service"
       int_service.vm.network :forwarded_port, guest: 22, host: 3200, id: 'ssh'
       int_service.vm.network "public_network", bridge: "tap2", mac: "0800276dec72", ip: "192.168.3.11"
@@ -43,6 +47,10 @@ Vagrant.configure("2") do |config|
 
     config.vm.define "int_heralding" do |int_heralding|
       int_heralding.vm.box = "ubuntu/focal64"
+        int_heralding.vm.provider "virtualbox" do |int_heralding1|
+          # Customize the amount of memory on the VM:
+      int_heralding1.memory = "512"
+    end
       int_heralding.vm.synced_folder "shared/", "/home/emma/ubuntu/shared"
       int_heralding.vm.network :forwarded_port, guest: 22, host: 3201, id: 'ssh'
       int_heralding.vm.network "public_network", bridge: "tap3", mac: "0800276c0abf", ip: "192.168.3.12"
@@ -69,6 +77,10 @@ Vagrant.configure("2") do |config|
     
     config.vm.define "ext_cowrie" do |ext_cowrie|
       ext_cowrie.vm.box = "ubuntu/focal64"
+        ext_cowrie.vm.provider "virtualbox" do |ext_cowrie1|
+          # Customize the amount of memory on the VM:
+      ext_cowrie1.memory = "1024"
+    end
       ext_cowrie.vm.synced_folder "ext_cowrie/", "/home/emma/ubuntu/ext_cowrie"
       ext_cowrie.vm.network :forwarded_port, guest: 22, host: 3202, id: 'ssh'
       ext_cowrie.vm.network "public_network", bridge: "tap4", mac: "080027b70e58", ip: "192.168.4.10"
@@ -95,6 +107,10 @@ Vagrant.configure("2") do |config|
 
     config.vm.define "ext_heralding" do |ext_heralding|
       ext_heralding.vm.box = "ubuntu/focal64"
+        ext_heralding.vm.provider "virtualbox" do |ext_heralding1|
+          # Customize the amount of memory on the VM:
+      ext_heralding1.memory = "512"
+    end
       ext_heralding.vm.synced_folder "ext_heralding/", "/home/emma/ubuntu/ext_heralding"
       ext_heralding.vm.network :forwarded_port, guest: 22, host: 3204, id: 'ssh'
       ext_heralding.vm.network "public_network", bridge: "tap7", mac: "0800276df998", ip: "192.168.4.11"
@@ -121,6 +137,10 @@ Vagrant.configure("2") do |config|
         
     config.vm.define "dmz_heralding" do |dmz_heralding|
       dmz_heralding.vm.box = "ubuntu/focal64"
+        dmz_heralding.vm.provider "virtualbox" do |dmz_heralding1|
+          # Customize the amount of memory on the VM:
+      dmz_heralding1.memory = "512"
+    end
       dmz_heralding.vm.synced_folder "dmz_heralding/", "/home/emma/ubuntu/dmz_heralding"
       dmz_heralding.vm.network :forwarded_port, guest: 22, host: 3205, id: 'ssh'
       dmz_heralding.vm.network "public_network", bridge: "tap10", mac: "0800272c3092", ip: "192.168.10.10"
@@ -145,12 +165,71 @@ Vagrant.configure("2") do |config|
       dmz_heralding.vm.provision "shell", path: "./dmz_heralding/start.sh"
     end
 
+    config.vm.define "dmz_cowrie" do |dmz_cowrie|
+      dmz_cowrie.vm.box = "ubuntu/focal64"
+        dmz_cowrie.vm.provider "virtualbox" do |dmz_cowrie1|
+          # Customize the amount of memory on the VM:
+      dmz_cowrie1.memory = "1024"
+    end
+      dmz_cowrie.vm.synced_folder "dmz_cowrie/", "/home/emma/ubuntu/dmz_cowrie"
+      dmz_cowrie.vm.network :forwarded_port, guest: 22, host: 3206, id: 'ssh'
+      dmz_cowrie.vm.network "public_network", bridge: "tap12", mac: "080027b70e59", ip: "192.168.10.13"
+    
+      dmz_cowrie.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.3.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_cowrie.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.5.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_cowrie.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.4.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_cowrie.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.11.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_cowrie.vm.provision "shell", path: "./configurations/dmz_cowrie.sh"
+      dmz_cowrie.vm.provision "shell", path: "./dmz_cowrie/start.sh"
+    end
+
+    config.vm.define "dmz_service" do |dmz_service|
+      dmz_service.vm.box = "ubuntu/focal64"
+      dmz_service.vm.provider "virtualbox" do |dmz_service1|
+          # Customize the amount of memory on the VM:
+      dmz_service1.memory = "512"
+    end
+      dmz_service.vm.synced_folder "./dmz_service", "/home/emma/ubuntu/dmz_service"
+      dmz_service.vm.network :forwarded_port, guest: 22, host: 3200, id: 'ssh'
+      dmz_service.vm.network "public_network", bridge: "tap13", mac: "0800276dec74", ip: "192.168.10.14"
+      
+      dmz_service.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.4.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_service.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.5.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_service.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.3.0/24 via 192.168.10.1 dev enp0s8"
+
+      dmz_service.vm.provision "shell",
+        run: "always",
+        inline: "ip route add 192.168.11.0/24 via 192.168.10.1 dev enp0s8"
+      
+      dmz_service.vm.provision "shell", path: "./configurations/dmz_service.sh"
+    end
+
     config.vm.define "elk" do |elk|
       elk.vm.box = "ubuntu/focal64"
         elk.vm.provider "virtualbox" do |elk1|
           # Customize the amount of memory on the VM:
-	  elk1.memory = "8192"
-	end
+	    elk1.memory = "8192"
+	  end
       elk.vm.synced_folder "elk/", "/home/emma/ubuntu/elk"
       elk.vm.network :forwarded_port, guest: 22, host: 3203, id: 'ssh'
       elk.vm.network "public_network", bridge: "tap5", mac: "0800277db7b8", ip: "192.168.5.10"

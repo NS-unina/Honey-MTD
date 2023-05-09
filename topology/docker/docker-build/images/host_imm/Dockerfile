@@ -7,4 +7,4 @@ RUN apt-get install -y iputils-ping
 RUN apt-get install -y arp-scan
 RUN apt-get install -y nmap
 RUN apt-get install -y nano
-RUN apt-get install -y ssh && apt-get install -y telnet && apt-get install ftp
+RUN apt-get install -y ssh && apt-get install -y telnet && apt-get install ftp -y

@@ -44,6 +44,14 @@ if ip a | grep -q "tap11:."; then
    sudo ip link delete tap11
 fi
 
+if ip a | grep -q "tap12:."; then
+   sudo ip link delete tap12
+fi
+
+if ip a | grep -q "tap13:."; then
+   sudo ip link delete tap13
+fi
+
 if ip a | grep -q "c1_l@"; then
    sudo ip link delete c1_l
 fi
