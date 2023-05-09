@@ -58,3 +58,12 @@ pip install prison
 cp /home/emma/ubuntu/elk/conf.sh /home/vagrant
 cp /home/emma/ubuntu/elk/connect.sh /home/vagrant
 cp /home/emma/ubuntu/elk/connect_ext.sh /home/vagrant
+
+
+sleep 20
+curl -X POST "127.0.0.1:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@/home/emma/ubuntu/elk/kibana_conf/export.ndjson
+curl -X POST "127.0.0.1:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@/home/emma/ubuntu/elk/kibana_conf/D_Dashboard/d1.ndjson
+curl -X POST "127.0.0.1:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@/home/emma/ubuntu/elk/kibana_conf/TI_Dashboard/d2.ndjson
+
+
+

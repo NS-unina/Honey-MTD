@@ -331,6 +331,14 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.drop_icmp_srcIP_srcPORT_dstIP(parser, t.dmz_service.get_ip_addr(), 22, t.elk_if2.get_ip_addr(), datapath)
         self.drop_tcp_srcIP_srcPORT_dstIP(parser, t.dmz_service.get_ip_addr(), 22, t.elk_if2.get_ip_addr(), datapath)
 
+        self.drop_tcp_host1_host2(parser, t.dmz_host.get_ip_addr(), t.heralding.get_ip_addr(), datapath)
+        self.drop_icmp_host1_host2(parser, t.dmz_host.get_ip_addr(), t.heralding.get_ip_addr(), datapath)
+        self.drop_tcp_host1_host2(parser, t.dmz_host.get_ip_addr(), t.service.get_ip_addr(), datapath)
+        self.drop_icmp_host1_host2(parser, t.dmz_host.get_ip_addr(), t.service.get_ip_addr(), datapath)    
+        self.drop_tcp_host1_host2(parser, t.dmz_host.get_ip_addr(), t.host.get_ip_addr(), datapath)
+        self.drop_icmp_host1_host2(parser, t.dmz_host.get_ip_addr(), t.host.get_ip_addr(), datapath)             
+     
+
 
     def send_set_async(self, datapath):
         ofp = datapath.ofproto

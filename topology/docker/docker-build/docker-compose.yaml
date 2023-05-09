@@ -20,7 +20,7 @@ services:
         stdin_open: true
         privileged: true
         volumes:
-          - ./configurations/ext_host:/home
+          - ./configurations/ext_host:/home       
     dmz_service:
         build: ./images/ssh_imm
         container_name: ssh_server
@@ -41,4 +41,3 @@ services:
         privileged: true
         volumes:
           - ./configurations/controller:/home
-
