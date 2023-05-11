@@ -51,6 +51,9 @@ cp /home/emma/ubuntu/elk/config.yaml /home/vagrant/elastalert
 mkdir rules
 cp /home/emma/ubuntu/elk/rules/example_new_term.yaml /home/vagrant/elastalert/rules 
 cp /home/emma/ubuntu/elk/rules/example_new_term_ext.yaml /home/vagrant/elastalert/rules
+cp /home/emma/ubuntu/elk/rules/example_change.yaml /home/vagrant/elastalert/rules
+cp /home/emma/ubuntu/elk/rules/example_change_new.yaml /home/vagrant/elastalert/rules
+
 cd 
 sudo apt-get install -y elastalert
 #elastalert-create-index
@@ -58,7 +61,9 @@ pip install prison
 cp /home/emma/ubuntu/elk/conf.sh /home/vagrant
 cp /home/emma/ubuntu/elk/connect.sh /home/vagrant
 cp /home/emma/ubuntu/elk/connect_ext.sh /home/vagrant
-
+cp /home/emma/ubuntu/elk/connect_host.sh /home/vagrant
+cp /home/emma/ubuntu/elk/connect_host_ext.sh /home/vagrant
+cp /home/emma/ubuntu/elk/take_ip.py /home/vagrant
 
 sleep 20
 curl -X POST "127.0.0.1:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@/home/emma/ubuntu/elk/kibana_conf/export.ndjson

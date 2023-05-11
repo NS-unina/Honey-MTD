@@ -33,6 +33,23 @@ sudo ./my-ovs-docker add-port br0 eth1 int_host h1 15 --ipaddress=192.168.3.10/2
 sudo ovs-vsctl -- set port h1_l tag=1
 sudo iptables -t nat -A POSTROUTING -o h1_l -j MASQUERADE
 
+
+
+if sudo ovs-vsctl --data=bare --no-heading --columns=name find interface external_ids:container_id=int_ssh_server \
+   external_ids:container_iface=eth1 | grep -q "h3_l"; then
+        sudo ./my-ovs-docker del-port br0 eth1 int_ssh_server
+fi
+
+sudo docker stop int_ssh_server
+sudo docker start int_ssh_server
+
+sudo ./my-ovs-docker add-port br0 eth1 int_ssh_server h3 16 --ipaddress=192.168.3.13/24 --macaddress=08:00:27:b6:d0:69
+sudo ovs-vsctl -- set port h3_l tag=1
+sudo iptables -t nat -A POSTROUTING -o h3_l -j MASQUERADE
+
+
+
+
 if sudo ovs-vsctl --data=bare --no-heading --columns=name find interface external_ids:container_id=ssh_server \
    external_ids:container_iface=eth1 | grep -q "s1_l"; then
         sudo ./my-ovs-docker del-port br1 eth1 ssh_server

@@ -72,6 +72,10 @@ if ip a | grep -q "s1_l@"; then
    sudo ip link delete s1_l
 fi
 
+if ip a | grep -q "h3_l@"; then
+   sudo ip link delete h3_l
+fi
+
 sudo netplan apply
 
 # if ifconfig | grep -q -A2 "wlp0s20f3:*" | grep -q "inet "; then

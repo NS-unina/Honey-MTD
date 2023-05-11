@@ -109,6 +109,30 @@ class RestController(ExampleSwitch13):
                                 eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=22)
         self.add_flow(datapath, 1000, match, actions, 2)
     
+
+    def redirect_to_cowrie_ssh_int_dup(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        self.attacker = src_ip
+        actions = [parser.OFPActionSetField(eth_dst=t.gw1.get_MAC_addr()),
+                   parser.OFPActionSetField(ipv4_dst=t.cowrie.get_ip_addr()),
+                   parser.OFPActionOutput(t.gw1.get_ovs_port())]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip,
+                                ipv4_dst=t.ssh_service.get_ip_addr(), ip_proto=6, tcp_dst=22)
+        self.add_flow(datapath, 1000, match, actions, 2)
+
+    def change_cowrie_src_ssh_int_dup(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        out_port = u.host_to_port(t.subnet1, src_ip)
+        actions = [parser.OFPActionSetField(ipv4_src=t.ssh_service.get_ip_addr()),
+                   parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.cowrie.get_ip_addr(), ipv4_dst=src_ip, 
+                                eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=22)
+        self.add_flow(datapath, 1000, match, actions, 2)
+
+
+    
     def redirect_to_cowrie_telnet(self, dpid, src_ip):
         datapath = self.switches.get(dpid)
         parser = datapath.ofproto_parser
@@ -149,7 +173,41 @@ class RestController(ExampleSwitch13):
                    parser.OFPActionOutput(out_port)]
         match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.heralding1.get_ip_addr(), ipv4_dst=src_ip, 
                                 eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=22)
-        self.add_flow(datapath, 1000, match, actions, 2)    
+        self.add_flow(datapath, 1000, match, actions, 2)   
+
+
+
+    def redirect_to_heralding_ssh_int_dup(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        self.attacker = src_ip
+        actions = [parser.OFPActionSetField(eth_dst=t.gw1.get_MAC_addr()),
+                   parser.OFPActionSetField(ipv4_dst=t.heralding1.get_ip_addr()),
+                   parser.OFPActionOutput(t.gw1.get_ovs_port())]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=src_ip,
+                                ipv4_dst=t.ssh_service.get_ip_addr(), ip_proto=6, tcp_dst=22)
+        self.add_flow(datapath, 1000, match, actions, 2)
+
+    def change_heralding_src_ssh_int_dup(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        out_port = u.host_to_port(t.subnet1, src_ip)
+        actions = [parser.OFPActionSetField(ipv4_src=t.ssh_service.get_ip_addr()),
+                   parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.heralding1.get_ip_addr(), ipv4_dst=src_ip, 
+                                eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=22)
+        self.add_flow(datapath, 1000, match, actions, 2)   
+
+
+    def change_heralding_src_ssh_int(self, dpid, src_ip):
+        datapath = self.switches.get(dpid)
+        parser = datapath.ofproto_parser
+        out_port = u.host_to_port(t.subnet1, src_ip)
+        actions = [parser.OFPActionSetField(ipv4_src=t.service.get_ip_addr()),
+                   parser.OFPActionOutput(out_port)]
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.heralding1.get_ip_addr(), ipv4_dst=src_ip, 
+                                eth_src=t.gw1.get_MAC_addr(), ip_proto=6, tcp_src=22)
+        self.add_flow(datapath, 1000, match, actions, 2)     
 
     # PORT HOPPING
     def drop_http_syn(self, dpid, src_ip):
@@ -353,3 +411,54 @@ class SimpleSwitchController(ControllerBase):
             return Response(status=200)
         else:
             return Response(status=400)
+        
+
+    @route('restswitch', '/rest_controller/push_int_server_out', methods=['POST'])
+    def push_int_server_out(self, req, **kwargs):
+            richiesta = req.json
+            simple_switch = self.simple_switch_app
+            if richiesta:
+                print(richiesta)
+                src_IP = richiesta['Source_IP']
+                #dpid = int(dpid) 
+                dpid = t.br0_dpid
+
+                a = man.sm[man.COWRIE_INDEX][man.SSH_INDEX]
+                b = man.sb[man.COWRIE_INDEX][man.SSH_INDEX]
+
+                #if (a and b) == 0: 
+                man.sb[man.COWRIE_INDEX][man.SSH_INDEX] = 1
+                simple_switch.redirect_to_cowrie_ssh_int_dup(dpid, src_IP)
+                simple_switch.change_cowrie_src_ssh_int_dup(dpid, src_IP)
+                #else:           
+                    #man.sb[man.HERALDING_INDEX][man.SSH_INDEX] = 1
+                    #simple_switch.redirect_to_heralding_ssh_int_dup(dpid, src_IP)
+                    #simple_switch.change_heralding_src_ssh_int_dup(dpid, src_IP)
+                return Response(status=200)
+            else:
+                return Response(status=400)
+            
+    @route('restswitch', '/rest_controller/push_dmz_server_out', methods=['POST'])
+    def push_dmz_server_out(self, req, **kwargs):
+            richiesta = req.json
+            simple_switch = self.simple_switch_app
+            if richiesta:
+                print(richiesta)
+                src_IP = richiesta['Source_IP']
+                #dpid = int(dpid) 
+                dpid = t.br1_dpid
+
+                a = man.sm[man.COWRIE_INDEX][man.SSH_INDEX]
+                b = man.sb[man.COWRIE_INDEX][man.SSH_INDEX]
+
+                #if (a and b) == 0: 
+                man.sb[man.HERALDING_INDEX][man.SSH_INDEX] = 1
+                simple_switch.redirect_to_heralding_ssh_ext(dpid, src_IP)
+                simple_switch.change_heralding_src_ssh_ext(dpid, src_IP)
+                #else:           
+                    #man.sb[man.HERALDING_INDEX][man.SSH_INDEX] = 1
+                    #simple_switch.redirect_to_heralding_ssh_int_dup(dpid, src_IP)
+                    #simple_switch.change_heralding_src_ssh_int_dup(dpid, src_IP)
+                return Response(status=200)
+            else:
+                return Response(status=400)

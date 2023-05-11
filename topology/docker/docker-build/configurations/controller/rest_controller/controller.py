@@ -83,7 +83,7 @@ class ExampleSwitch13(app_manager.RyuApp):
                 print(values)
                 ipv4_dst = values[1][1]
                 port_dst = values[3][1]
-                self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
+                #self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
             
                 self.port = t.ports[random.randint(0, 3)]
                 self.redirect_protocol_syn(parser, datapath, self.port)
@@ -273,7 +273,7 @@ class ExampleSwitch13(app_manager.RyuApp):
                                          '192.168.5.100', datapath)          
 
         # DROP arp input to service
-        self.drop_tcp_dstIP(parser, t.service.get_ip_addr(), datapath)
+        #self.drop_tcp_dstIP(parser, t.service.get_ip_addr(), datapath)
         self.permit_tcp_host1_host2(parser, t.gw1.get_ip_addr(), t.service.get_ip_addr(), t.service.get_ovs_port(), datapath)
         self.permit_tcp_host1_host2(parser, t.elk_if1.get_ip_addr(), t.service.get_ip_addr(), t.service.get_ovs_port(), datapath)
 

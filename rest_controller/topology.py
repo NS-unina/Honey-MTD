@@ -4,6 +4,7 @@ from network import Host, Honeypot, Attacker, Subnet, Network, Gateway
 # Nodes
 host = Host('host', '192.168.3.10', '08:00:27:b6:d0:66', 15, '255.255.255.0')
 service = Host('service', '192.168.3.11', '08:00:27:6d:ec:62', 3, '255.255.255.0')
+ssh_service = Host('ssh_service', '192.168.3.13', '08:00:27:b6:d0:69', 16, '255.255.255.0')
 heralding = Honeypot('heralding', '192.168.3.12', '08:00:27:6c:0a:bf', 4, '255.255.255.0')
 
 cowrie = Honeypot('cowrie', '192.168.4.10', '08:00:27:b7:0e:58', 6, '255.255.255.0')
@@ -14,6 +15,8 @@ elk_if2 = Host('ELK_IF2', '192.168.11.10', '08:00:27:f5:6b:90', 13, '255.255.255
 
 dmz_heralding = Honeypot('dmz_heralding', '192.168.10.10', '08:00:27:2c:30:92', 2, '255.255.255.0')
 dmz_service = Host('dmz_service', '192.168.10.11', '08:00:27:b6:d0:67', 22, '255.255.255.0')
+dmz_service1 = Host('dmz_service1', '192.168.10.14', '08:00:27:6d:ec:74', 21, '255.255.255.0')
+dmz_cowrie = Honeypot('dmz_cowrie', '192.168.10.13', '08:00:27:b7:0e:59', 20, '255.255.255.0')
 dmz_host = Host('dmz_host', '192.168.10.12', '08:00:27:b6:d0:68', 23, '255.255.255.0')
 
 # Subnets
@@ -43,6 +46,7 @@ network2 = Network('Net2')
 subnet1.add_node(host, host.get_ovs_port())
 subnet1.add_node(heralding, heralding.get_ovs_port())
 subnet1.add_node(service, service.get_ovs_port())
+subnet1.add_node(ssh_service, ssh_service.get_ovs_port())
 subnet1.add_node(gw1, gw1.get_ovs_port())
 
 subnet2.add_node(cowrie, cowrie.get_ovs_port())
@@ -56,6 +60,8 @@ subnet3.add_node(gw3, gw3.get_ovs_port())
 subnet4.add_node(dmz_service, dmz_service.get_ovs_port())
 subnet4.add_node(dmz_heralding, dmz_heralding.get_ovs_port())
 subnet4.add_node(dmz_host, dmz_host.get_ovs_port())
+subnet4.add_node(dmz_cowrie, dmz_cowrie.get_ovs_port())
+subnet4.add_node(dmz_service1, dmz_service1.get_ovs_port())
 subnet4.add_node(gw10, gw10.get_ovs_port())
 
 subnet5.add_node(elk_if2, elk_if2.get_ovs_port())

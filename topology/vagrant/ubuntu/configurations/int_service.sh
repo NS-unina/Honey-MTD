@@ -15,6 +15,12 @@ sudo apt -y install apache2
 sudo service apache2 enable
 sudo service apache2 start
 
+# vedi servizio vulnerabile da installare
+#vuln sudoedit
+sudo apt install -y --allow-downgrades sudo=1.8.31-1ubuntu1
+echo "administrator ALL = (ALL) ALL" | sudo tee -a /etc/sudoers
+echo "administrator ALL = (root) NOPASSWD: /usr/bin/sudoedit" | sudo tee -a /etc/sudoers
+
 #auditbeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/auditbeat/auditbeat-8.7.0-amd64.deb
 sudo dpkg -i auditbeat-8.7.0-amd64.deb
