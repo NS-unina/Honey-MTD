@@ -69,6 +69,7 @@ sleep 20
 curl -X POST "127.0.0.1:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@/home/emma/ubuntu/elk/kibana_conf/export.ndjson
 curl -X POST "127.0.0.1:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@/home/emma/ubuntu/elk/kibana_conf/D_Dashboard/d1.ndjson
 curl -X POST "127.0.0.1:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@/home/emma/ubuntu/elk/kibana_conf/TI_Dashboard/d2.ndjson
+curl -X POST "127.0.0.1:5601/api/saved_objects/_import" -H "kbn-xsrf: true" --form file=@/home/emma/ubuntu/elk/kibana_conf/Man_Dashboard/d3.ndjson
 
 
 
