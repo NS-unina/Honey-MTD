@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+    int_host: 
+        build: ./images/host_imm
+        container_name: int_host
+        cap_add:
+          - NET_ADMIN 
+        tty: true
+        stdin_open: true
+        privileged: true
+        volumes:
+          - ./configurations/int_host:/home
+    dmz_host:
+        build: ./images/host_imm
+        container_name: ext_host
+        cap_add:
+          - NET_ADMIN 
+        tty: true
+        stdin_open: true
+        privileged: true
+        volumes:
+          - ./configurations/ext_host:/home       
+    dmz_service:
+        build: ./images/ssh_imm
+        container_name: ssh_server
+        cap_add:
+          - NET_ADMIN 
+        tty: true
+        stdin_open: true
+        privileged: true
+        volumes:
+          - ./configurations/ssh_server:/home
+    int_ssh_server:
+        build: ./images/ssh_imm
+        cap_add:
+          - NET_ADMIN 
+        tty: true
+        stdin_open: true
+        privileged: true
+        volumes:
+          - ./configurations/int_ssh_server:/home
+        deploy:
+          mode: replicated
+          replicas: 20
+    controller:
+        build: ./images/ryu_imm
+        container_name: controller
+        cap_add:
+          - NET_ADMIN 
+        tty: true
+        stdin_open: true
+        privileged: true
+        volumes:
+          - ./configurations/controller:/home
