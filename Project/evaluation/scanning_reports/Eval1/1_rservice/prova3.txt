@@ -1,0 +1,56 @@
+# Nmap 7.80 scan initiated Wed May 17 10:39:09 2023 as: nmap -sT -T1 -p 22,25,5432,143,5900,3306 -vvv -oN prova3.txt 192.168.3.10-15
+Nmap scan report for 192.168.3.10
+Host is up, received localhost-response (0.00014s latency).
+Scanned at 2023-05-17 10:40:24 UTC for 75s
+
+PORT     STATE  SERVICE    REASON
+22/tcp   closed ssh        conn-refused
+25/tcp   closed smtp       conn-refused
+143/tcp  closed imap       conn-refused
+3306/tcp closed mysql      conn-refused
+5432/tcp closed postgresql conn-refused
+5900/tcp closed vnc        conn-refused
+
+Nmap scan report for 192.168.3.14 [host down, received no-response]
+Nmap scan report for 192.168.3.15 [host down, received no-response]
+Nmap scan report for 192.168.3.11
+Host is up, received arp-response (0.0023s latency).
+Scanned at 2023-05-17 10:40:09 UTC for 302s
+
+PORT     STATE    SERVICE    REASON
+22/tcp   open     ssh        syn-ack
+25/tcp   closed   smtp       conn-refused
+143/tcp  filtered imap       no-response
+3306/tcp filtered mysql      no-response
+5432/tcp filtered postgresql no-response
+5900/tcp closed   vnc        conn-refused
+MAC Address: 08:00:27:6D:EC:72 (Oracle VirtualBox virtual NIC)
+
+Nmap scan report for 192.168.3.12
+Host is up, received arp-response (0.0040s latency).
+Scanned at 2023-05-17 10:39:24 UTC for 421s
+
+PORT     STATE    SERVICE    REASON
+22/tcp   filtered ssh        no-response
+25/tcp   open     smtp       syn-ack
+143/tcp  filtered imap       no-response
+3306/tcp filtered mysql      no-response
+5432/tcp filtered postgresql no-response
+5900/tcp filtered vnc        no-response
+MAC Address: 08:00:27:6C:0A:BF (Oracle VirtualBox virtual NIC)
+
+Nmap scan report for 192.168.3.13
+Host is up, received arp-response (0.0019s latency).
+Scanned at 2023-05-17 10:40:09 UTC for 331s
+
+PORT     STATE  SERVICE    REASON
+22/tcp   open   ssh        syn-ack
+25/tcp   closed smtp       conn-refused
+143/tcp  closed imap       conn-refused
+3306/tcp closed mysql      conn-refused
+5432/tcp closed postgresql conn-refused
+5900/tcp closed vnc        conn-refused
+MAC Address: 08:00:27:B6:D0:69 (Oracle VirtualBox virtual NIC)
+
+Read data files from: /usr/bin/../share/nmap
+# Nmap done at Wed May 17 10:46:25 2023 -- 6 IP addresses (4 hosts up) scanned in 436.42 seconds

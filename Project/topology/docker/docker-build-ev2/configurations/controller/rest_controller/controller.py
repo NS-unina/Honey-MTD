@@ -317,6 +317,28 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.redirect_protocol_syn(parser, datapath, self.port)
         self.change_heralding_src_protocol(parser, datapath, self.port)
 
+
+        self.redirect_protocol_syn1(parser, datapath, 143, t.s1)
+        self.change_heralding_src_protocol1(parser, datapath, 143, t.s1)
+        self.redirect_protocol_syn1(parser, datapath, 5900, t.s2)
+        self.change_heralding_src_protocol1(parser, datapath, 5900, t.s2)
+        self.redirect_protocol_syn1(parser, datapath, 3306, t.s3)
+        self.change_heralding_src_protocol1(parser, datapath, 3306, t.s3)
+        self.redirect_protocol_syn1(parser, datapath, 993, t.s4)
+        self.change_heralding_src_protocol1(parser, datapath, 993, t.s4)
+        self.redirect_protocol_syn1(parser, datapath, 5432, t.s5)
+        self.change_heralding_src_protocol1(parser, datapath, 5432, t.s5)
+        self.redirect_protocol_syn1(parser, datapath, 80, t.s6)
+        self.change_heralding_src_protocol1(parser, datapath, 80, t.s6)
+        self.redirect_protocol_syn1(parser, datapath, 23, t.s7)
+        self.change_heralding_src_protocol1(parser, datapath, 23, t.s7)
+        self.redirect_protocol_syn1(parser, datapath, 22, t.s8)
+        self.change_heralding_src_protocol1(parser, datapath, 22, t.s8)
+        self.redirect_protocol_syn1(parser, datapath, 1080, t.s9)
+        self.change_heralding_src_protocol1(parser, datapath, 1080, t.s9)
+        self.redirect_protocol_syn1(parser, datapath, 443, t.s10)
+        self.change_heralding_src_protocol1(parser, datapath, 443, t.s10)
+
     def add_default_rules_br1(self, datapath):
         parser = datapath.ofproto_parser
 
@@ -447,3 +469,23 @@ class ExampleSwitch13(app_manager.RyuApp):
         match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.heralding.get_ip_addr(), 
                                 eth_src=t.heralding.get_MAC_addr(), ip_proto=6, tcp_src=port)
         self.add_flow_with_hard(datapath, 1000, match, actions, 5)
+
+
+    # PROACTIVE MTD PORT HOPPING1
+    def redirect_protocol_syn1(self, parser, datapath, port, service_name):  
+        self.permit_tcp_dstIP_dstPORT(parser, service_name.get_ip_addr(), service_name.get_ovs_port(), port, datapath)
+        
+        actions = [parser.OFPActionSetField(eth_dst=t.heralding.get_MAC_addr()),
+                   parser.OFPActionSetField(ipv4_dst=t.heralding.get_ip_addr()),
+                   parser.OFPActionOutput(t.heralding.get_ovs_port())]       
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_dst=service_name.get_ip_addr(), ip_proto=6, tcp_dst=port)
+        self.add_flow(datapath, 1000, match, actions, 4)
+
+    def change_heralding_src_protocol1(self, parser, datapath, port, service_name):
+        ofproto = datapath.ofproto
+        actions = [parser.OFPActionSetField(eth_src=service_name.get_MAC_addr()),
+                   parser.OFPActionSetField(ipv4_src=service_name.get_ip_addr()),
+                   parser.OFPActionOutput(ofproto.OFPP_NORMAL)]       
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src=t.heralding.get_ip_addr(), 
+                                eth_src=t.heralding.get_MAC_addr(), ip_proto=6, tcp_src=port)
+        self.add_flow(datapath, 1000, match, actions, 5)
