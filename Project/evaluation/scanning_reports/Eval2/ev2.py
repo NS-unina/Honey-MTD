@@ -35,13 +35,12 @@ hp_MTD = [10, avg_service_1, avg_service_10, avg_service_20, avg_service_30, avg
 
 service_MTD = np.interp(hp_number1, hp_number, hp_MTD)
 
-plt.plot(hp_number, service_MTD, label = 'MTD')
-plt.plot(hp_number, hp_no_MTD, label = 'no MTD')
-plt.xlabel("N° Honeypots")
-plt.ylabel("N° Discovered Services")
-plt.title("Second Evaluation - Private Subnet")
+plt.plot(hp_number, service_MTD, label = 'MTD and AD')
+plt.plot(hp_number, hp_no_MTD, linestyle='dotted', label = 'AD')
+plt.xlabel("Honeypots (number)")
+plt.ylabel("Avg. Discovered Real Services (number)")
+plt.xlim(0, 12)
+plt.ylim(0, 15)
+plt.title("Avg. of Discovered Real Services over Honeypots (Real Services = 10)")
 plt.legend()
 plt.show()
-
-
-
