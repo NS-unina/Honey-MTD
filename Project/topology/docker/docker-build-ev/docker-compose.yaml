@@ -42,7 +42,7 @@ services:
           - ./configurations/int_ssh_server:/home
         deploy:
           mode: replicated
-          replicas: 40
+          replicas: 30
     controller:
         build: ./images/ryu_imm
         container_name: controller

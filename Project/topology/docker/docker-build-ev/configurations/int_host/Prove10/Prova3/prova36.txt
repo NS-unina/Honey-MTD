@@ -1,0 +1,4 @@
+# Nmap 7.80 scan initiated Sun May 21 14:27:33 2023 as: nmap -sT -vvv -oN ./Prove10/Prova3/prova36.txt 192.168.3.41
+Nmap scan report for 192.168.3.41 [host down, received no-response]
+Read data files from: /usr/bin/../share/nmap
+# Nmap done at Sun May 21 14:27:33 2023 -- 1 IP address (0 hosts up) scanned in 0.58 seconds

@@ -1,0 +1,1 @@
+# Nmap 7.80 scan initiated Sun May 21 14:42:45 2023 as: nmap -sT -vvv -oN ./Prove10/Prova6/prova6.txt 192.168.3.12
