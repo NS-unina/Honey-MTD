@@ -1,0 +1,13 @@
+# Nmap 7.80 scan initiated Mon May 22 09:04:59 2023 as: nmap -sT -vvv -oN ./Prove4/Prova2/prova0.txt 192.168.3.15
+Nmap scan report for 192.168.3.15
+Host is up, received arp-response (0.021s latency).
+Scanned at 2023-05-22 09:04:59 UTC for 0s
+Not shown: 998 closed ports
+Reason: 998 conn-refused
+PORT   STATE SERVICE REASON
+22/tcp open  ssh     syn-ack
+23/tcp open  telnet  syn-ack
+MAC Address: 08:00:27:B6:D0:71 (Oracle VirtualBox virtual NIC)
+
+Read data files from: /usr/bin/../share/nmap
+# Nmap done at Mon May 22 09:04:59 2023 -- 1 IP address (1 host up) scanned in 0.48 seconds

@@ -1,0 +1,7 @@
+# Nmap 7.80 scan initiated Mon May 22 10:08:07 2023 as: nmap -sT -vvv -oN ./Prove12/Prova3/prova9.txt 192.168.3.10
+Nmap scan report for 192.168.3.10
+Host is up, received localhost-response (0.00010s latency).
+All 1000 scanned ports on 192.168.3.10 are closed because of 1000 conn-refused
+
+Read data files from: /usr/bin/../share/nmap
+# Nmap done at Mon May 22 10:08:07 2023 -- 1 IP address (1 host up) scanned in 0.08 seconds

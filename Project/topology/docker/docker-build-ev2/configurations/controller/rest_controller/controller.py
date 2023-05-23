@@ -68,29 +68,29 @@ class ExampleSwitch13(app_manager.RyuApp):
             self.add_flow(datapath, 0, match, actions, 0)
             self.add_default_rules_br1(datapath)
             
-    @set_ev_cls(ofp_event.EventOFPFlowRemoved, MAIN_DISPATCHER)
-    def flow_removed_handler(self, ev):
-        msg = ev.msg
-        datapath = msg.datapath
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
-        dpid = datapath.id
+    # @set_ev_cls(ofp_event.EventOFPFlowRemoved, MAIN_DISPATCHER)
+    # def flow_removed_handler(self, ev):
+    #     msg = ev.msg
+    #     datapath = msg.datapath
+    #     ofproto = datapath.ofproto
+    #     parser = datapath.ofproto_parser
+    #     dpid = datapath.id
 
 
-        if dpid == t.br0_dpid:
-            if msg.cookie == 4:
-                values = msg.match.items()
-                print(values)
-                ipv4_dst = values[1][1]
-                port_dst = values[3][1]
-                self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
+    #     if dpid == t.br0_dpid:
+    #         if msg.cookie == 4:
+    #             values = msg.match.items()
+    #             print(values)
+    #             ipv4_dst = values[1][1]
+    #             port_dst = values[3][1]
+    #             self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
             
-                self.port = t.ports[random.randint(0, 3)]
-                self.redirect_protocol_syn(parser, datapath, self.port)
-                self.change_heralding_src_protocol(parser, datapath, self.port)
+    #             self.port = t.ports[random.randint(0, 3)]
+    #             self.redirect_protocol_syn(parser, datapath, self.port)
+    #             self.change_heralding_src_protocol(parser, datapath, self.port)
         
-        if dpid == t.br1_dpid:
-            pass
+    #     if dpid == t.br1_dpid:
+    #         pass
         
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
@@ -314,14 +314,14 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.permit_tcp_dstIP_dstPORT(parser, t.cowrie.get_ip_addr(), t.cowrie.get_ovs_port(), 23, datapath)
 
         # MTD PROACTIVE PORT SHUFFLING STARTING RULES
-        self.redirect_protocol_syn(parser, datapath, self.port)
-        self.change_heralding_src_protocol(parser, datapath, self.port)
+        self.redirect_protocol_syn(parser, datapath, 143)
+        self.change_heralding_src_protocol(parser, datapath, 143)
 
 
-        self.redirect_protocol_syn1(parser, datapath, 143, t.s1)
-        self.change_heralding_src_protocol1(parser, datapath, 143, t.s1)
-        self.redirect_protocol_syn1(parser, datapath, 5900, t.s2)
-        self.change_heralding_src_protocol1(parser, datapath, 5900, t.s2)
+        self.redirect_protocol_syn1(parser, datapath, 21, t.s1)
+        self.change_heralding_src_protocol1(parser, datapath, 21, t.s1)
+        self.redirect_protocol_syn1(parser, datapath, 23, t.s2)
+        self.change_heralding_src_protocol1(parser, datapath, 23, t.s2)
         self.redirect_protocol_syn1(parser, datapath, 3306, t.s3)
         self.change_heralding_src_protocol1(parser, datapath, 3306, t.s3)
         self.redirect_protocol_syn1(parser, datapath, 993, t.s4)
@@ -330,8 +330,8 @@ class ExampleSwitch13(app_manager.RyuApp):
         self.change_heralding_src_protocol1(parser, datapath, 5432, t.s5)
         self.redirect_protocol_syn1(parser, datapath, 80, t.s6)
         self.change_heralding_src_protocol1(parser, datapath, 80, t.s6)
-        self.redirect_protocol_syn1(parser, datapath, 23, t.s7)
-        self.change_heralding_src_protocol1(parser, datapath, 23, t.s7)
+        self.redirect_protocol_syn1(parser, datapath, 5900, t.s7)
+        self.change_heralding_src_protocol1(parser, datapath, 5900, t.s7)
         self.redirect_protocol_syn1(parser, datapath, 22, t.s8)
         self.change_heralding_src_protocol1(parser, datapath, 22, t.s8)
         self.redirect_protocol_syn1(parser, datapath, 1080, t.s9)
