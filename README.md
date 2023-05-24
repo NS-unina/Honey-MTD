@@ -1,5 +1,5 @@
 # A Software Defined approach to Moving Target Defense in the Internet - M.Sc. Thesis
-Project aim is to reach *Defensive Deception* by mixing **Moving Target Defense** techniques and **Active Deception** ones, in order to fill the gap between attackers and defenders. Project architecture leverages on **Software Defined Networking (SDN)** paradigm, with the aim to facilitate the implementation of those novel security protection strategies. SDN has been created via two **Open vSwitches** and a **Ryu Controller**. Network hosts have been configured using both **Docker Containers** and **Virtual Machines**. ​
+> Project aim is to reach **Defensive Deception** by mixing **Moving Target Defense** techniques and **Active Deception** ones, in order to fill the gap between attackers and defenders. Project architecture leverages on **Software Defined Networking (SDN)** paradigm, with the aim to facilitate the implementation of those novel security protection strategies. SDN has been created via two **Open vSwitches** and a **Ryu Controller**. Network hosts have been configured using both **Docker Containers** and **Virtual Machines**. ​
 
 ## Installation
 ### Prerequirements  
