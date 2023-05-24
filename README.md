@@ -22,42 +22,48 @@ Virtual Machines creation and configuration:
 
 1. In `vagrant/ubuntu` folder run **vagrant up**.
 ```  
+$ cd topology/vagrant/ubuntu
 $ vagrant up
 ```
 2. VM username = **vagrant**. VM password = **vagrant**.
-3. Enter in *ext_heralding* VM (via VirtualBox Gui) and execute the script *start.sh* in `root` directory.
-4. Enter in *int_heralding* VM and execute the script *start.sh* in `root` directory.
+3. Enter in *ext_heralding* VM (via VirtualBox Gui) and execute the script *"start.sh"* in `root` directory.
+4. Enter in *int_heralding* VM and execute the script *"start.sh"* in `root` directory.
 
 Containers building and setup:
 1. In `docker/docker-build` folder run **docker compose up**.
 ```  
+$ cd topology/docker/docker-build
 $ docker compose up
 ```
 2. In `docker` folder execute the script **setup_container.sh**.
 ```  
-./setup_container.sh
+$ cd topology/docker
+$ ./setup_container.sh
 ```
 3. In `docker` folder execute the script **auth.sh**.
 ```  
-./auth.sh
+$ cd topology/docker
+$ ./auth.sh
 ```
 
 ## Execution
 ### Start Ryu Controller
-1. Execute the *controller* Container:
+1. Open a command line and execute *controller* Container:
 ```  
-docker exec -it controller bash
+$ docker exec -it controller bash
 ```
 2. In *controller* Container, enter in **/home/rest_controller** directory and run the following command:
 ```  
-ryu-manager rest_controller.py
+$ cd /home/rest_controller
+$ ryu-manager rest_controller.py
 ```
 
 ### Launch Elastalert
 1. Enter in *ELK* Virtual Machine (via VirtualBox GUI) with username and password previously specified.
 2. In *ELK* Virtual Machine, enter in **/elastalert** directory and run:
 ```  
-python3 -m elastalert.elastalert --verbose
+$ cd elastalert
+$ python3 -m elastalert.elastalert --verbose
 ```
 
 Now it is possible to proceed with **Attack Scenarios** demonstrations.
@@ -65,11 +71,13 @@ Now it is possible to proceed with **Attack Scenarios** demonstrations.
 ## Reset
 1. In `/docker/docker-build` run **docker compose down**.
 ```  
-docker compose down
+$ cd topology/docker/docker-build
+$ docker compose down
 ```
 2. In `/vagrant/ubuntu` run **vagrant destroy**.
 ```  
-vagrant destroy
+$ cd topology/vagrant/ubuntu
+$ vagrant destroy
 ```
 3. In `topology` execute the script **reset.sh**.
 ```  
