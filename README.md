@@ -10,20 +10,20 @@ The following steps allow project running on a Linux *(Ubuntu 20.04)* machine.
 
 ### Setup
 In `topology` folder: 
-1. Execute the script *create_net.sh*.
-2. Execute the script *setup.sh*.
+1. Execute the script **create_net.sh**.
+2. Execute the script **setup.sh**.
 
 Virtual Machines creation and configuration:
 
-1. In `vagrant/ubuntu` folder run *vagrant up*.
-2. VM username = *vagrant*. VM password = *vagrant*.
-3. Enter in *ext_heralding* VM and execute the script *start.sh* in **root** directory.
-4. Enter in *int_heralding* VM and execute the script *start.sh* in **root** directory.
+1. In `vagrant/ubuntu` folder run **vagrant up**.
+2. VM username = **vagrant**. VM password = **vagrant**.
+3. Enter in *ext_heralding* VM and execute the script *start.sh* in `root` directory.
+4. Enter in *int_heralding* VM and execute the script *start.sh* in `root` directory.
 
 Containers building and setup:
-1. In `docker/docker-build` folder run *docker compose up*.
-2. In `docker` folder execute the script *setup_container.sh*.
-3. In `docker` folder execute the script *auth.sh*.
+1. In `docker/docker-build` folder run **docker compose up**.
+2. In `docker` folder execute the script **setup_container.sh**.
+3. In `docker` folder execute the script **auth.sh**.
 
 ## Execution
 ### Start Ryu Controller
@@ -46,6 +46,6 @@ python3 -m elastalert.elastalert --verbose
 Now it is possible to proceed with **Attack Scenarios** demonstrations.
 
 ## Reset
-1. In `/docker/docker-build` run *docker compose down*.
-2. In `/vagrant/ubuntu` run *vagrant destroy*.
-3. In `topology` execute the script *reset.sh*.
+1. In `/docker/docker-build` run **docker compose down**.
+2. In `/vagrant/ubuntu` run **vagrant destroy**.
+3. In `topology` execute the script **reset.sh**.
