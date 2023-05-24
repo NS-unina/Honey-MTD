@@ -83,7 +83,7 @@ class ExampleSwitch13(app_manager.RyuApp):
                 print(values)
                 ipv4_dst = values[1][1]
                 port_dst = values[3][1]
-                #self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
+                self.drop_tcp_dstIP_dstPORT(parser, ipv4_dst, port_dst, datapath) 
             
                 self.port = t.ports[random.randint(0, 3)]
                 self.redirect_protocol_syn(parser, datapath, self.port)
@@ -194,7 +194,7 @@ class ExampleSwitch13(app_manager.RyuApp):
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
                                                 actions)]
         mod = parser.OFPFlowMod(datapath=datapath, priority=priority, cookie=cookie,
-                                match=match, instructions=inst, flags=ofproto.OFPFF_SEND_FLOW_REM, idle_timeout=0, hard_timeout=20)
+                                match=match, instructions=inst, flags=ofproto.OFPFF_SEND_FLOW_REM, idle_timeout=0, hard_timeout=60)
         datapath.send_msg(mod)
 
     def del_rules(self, datapath, cookie, match):
