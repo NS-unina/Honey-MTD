@@ -8,8 +8,6 @@ you need to install *Open vSwitch*, *Vagrant*, *Virtualbox*, *Docker* and *Docke
 
 The following steps allow project running on a Linux *(Ubuntu 20.04)* machine.
 
-Project source code is contained in `Project` folder. 
-
 ### Setup
 In `topology` folder: 
 1. Execute the script *create_net.sh*.
@@ -29,13 +27,18 @@ Containers building and setup:
 
 ## Execution
 ### Start Ryu Controller
-1. In *controller* Container, enter in **/home/rest_controller** directory and run the following command:
+1. Execute the *controller* Container:
+```  
+docker exec -it controller bash
+```
+2. In *controller* Container, enter in **/home/rest_controller** directory and run the following command:
 ```  
 ryu-manager rest_controller.py
 ```
 
 ### Launch Elastalert
-1. In *ELK* Virtual Machine, enter in **/elastalert** directory and run:
+1. Enter in *ELK* Virtual Machine with username and password previously specified.
+2. In *ELK* Virtual Machine, enter in **/elastalert** directory and run:
 ```  
 python3 -m elastalert.elastalert --verbose
 ```
