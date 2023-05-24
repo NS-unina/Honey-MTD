@@ -1,6 +1,5 @@
 # A Software Defined approach to Moving Target Defense in the Internet - M.Sc. Thesis
-Project aim is to reach *Defensive Deception* by mixing **Moving Target Defense** techniques and **Active Deception** ones, in order to fill
-the gap between attackers and defenders. Project architecture leverages on **Software Defined Networking (SDN)** paradigm, with the aim to facilitate the implementation of those novel security protection strategies. SDN has been created via two **Open vSwitches** and a **Ryu Controller**. Network hosts have been configured using both **Docker Containers** and **Virtual Machines**. ​
+Project aim is to reach *Defensive Deception* by mixing **Moving Target Defense** techniques and **Active Deception** ones, in order to fill the gap between attackers and defenders. Project architecture leverages on **Software Defined Networking (SDN)** paradigm, with the aim to facilitate the implementation of those novel security protection strategies. SDN has been created via two **Open vSwitches** and a **Ryu Controller**. Network hosts have been configured using both **Docker Containers** and **Virtual Machines**. ​
 
 ## Installation
 ### Prerequirements  
@@ -29,13 +28,13 @@ Containers building and setup:
 3. In `docker` folder execute the script *auth.sh*.
 
 ## Execution
-Start Ryu Controller
+### Start Ryu Controller
 1. In *controller* Container, enter in **/home/rest_controller** directory and run the following command:
 ```  
 ryu-manager rest_controller.py
 ```
 
-Launch Elastalert
+### Launch Elastalert
 1. In *ELK* Virtual Machine, enter in **/elastalert** directory and run:
 ```  
 python3 -m elastalert.elastalert --verbose
