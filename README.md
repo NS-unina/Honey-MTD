@@ -1,37 +1,49 @@
-# SkyTrap-MTD
+# A Software Defined approach to Moving Target Defense in the Internet - M.Sc. Thesis
+Project aim is to reach *Defensive Deception* by mixing **Moving Target Defense** techniques and **Active Deception** ones, in order to fill
+the gap between attackers and defenders. Project architecture leverages on **Software Defined Networking (SDN)** paradigm, with the aim to facilitate the implementation of those novel security protection strategies. SDN has been created via two **Open vSwitches** and a **Ryu Controller**. Network hosts have been configured using both **Docker Containers** and **Virtual Machines**. ​
 
-## Prequirements     
-You need to install *python 3.9* in order to use mininet. 
-If you have ubuntu 22.04, the official version is 3.10.  
-You can install an alternative python version by using the following guide: 
-https://towardsdatascience.com/installing-multiple-alternative-versions-of-python-on-ubuntu-20-04-237be5177474
+## Installation
+### Prerequirements  
+In order to execute the project on your machine
+you need to install *Open vSwitch*, *Vagrant*, *Virtualbox*, *Docker* and *Docker Compose*.
 
-1. Install mininet: 
-``` 
-pip install mininet  
-sudo apt-get install mininet
-``` 
+The following steps allow project running on a Linux *(Ubuntu 20.04)* machine.
 
-2. Install ryu  
-```  
-pip install ryu 
-```    
+Project source code is contained in `Project` folder. 
 
-Run the ryu controller:  
-```  
-ryu-manager <controller.py> 
-```   
+### Setup
+In `topology` folder: 
+1. Execute the script *create_net.sh*.
+2. Execute the script *setup.sh*.
 
-Run the mininet environment that uses ryu
+Virtual Machines creation and configuration:
+
+1. In `vagrant/ubuntu` folder run *vagrant up*.
+2. VM username = *vagrant*. VM password = *vagrant*.
+3. Enter in *ext_heralding* VM and execute the script *start.sh* in **root** directory.
+4. Enter in *int_heralding* VM and execute the script *start.sh* in **root** directory.
+
+Containers building and setup:
+1. In `docker/docker-build` folder run *docker compose up*.
+2. In `docker` folder execute the script *setup_container.sh*.
+3. In `docker` folder execute the script *auth.sh*.
+
+## Execution
+Start Ryu Controller
+1. In *controller* Container, enter in **/home/rest_controller** directory and run the following command:
 ```  
-python <mininet_env>
-``` 
-## Troubleshooting   
-If you have the following error: 
+ryu-manager rest_controller.py
+```
+
+Launch Elastalert
+1. In *ELK* Virtual Machine, enter in **/elastalert** directory and run:
 ```  
-cannot import name 'ALREADY_HANDLED' from 'eventlet.wsgi'  
-```   
-You should downgrade the `eventlet` version:
-```  
-pip install eventlet==0.30.2
-``` 
+python3 -m elastalert.elastalert --verbose
+```
+
+Now it is possible to proceed with **Attack Scenarios** demonstrations.
+
+## Reset
+1. In `/docker/docker-build` run *docker compose down*.
+2. In `/vagrant/ubuntu` run *vagrant destroy*.
+3. In `topology` execute the script *reset.sh*.
