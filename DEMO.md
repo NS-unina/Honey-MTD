@@ -12,18 +12,18 @@ $ nmap -sT 192.168.3.0/24
 
 > As a result, all the subnet hosts with related services are discovered. They are: **Internal Server** (*192.168.3.11*), **Internal Heralding** (*192.168.3.12*), **Internal SSH Server** (*192.168.3.13*).
 
- <img src="./demo/2.png" width="400" height="400">
+ <img src="./demo/2.png" width="500" height="400">
 
 > Since a connection has been established also with internal decoy services, this scanning activity can be easily detected, and the internal host is identified as malicious. After a while, the MTD rules are dynamically inserted in the Internal Open vSwitch, via Controller’s API.
 
-<img src="./demo/3.png" width="500" height="400">
+<img src="./demo/3.png" width="600" height="400">
 
 3. Therefore, another scanning is performed, in order to notice **Reactive MTD Port Hopping** and **Proactive MTD Port Hopping**.
 ```  
 $ nmap -sT 192.168.3.0/24
 ```
 
-<img src="./demo/4.png" width="400" height="400">
+<img src="./demo/4.png" width="500" height="400">
 
 
 4. By contacting **Internal Server** on port 22 or 23, you will be redirected to **Cowrie Honeypot** in **Threat Intelligence Subnet**. On the other hand, if the request is made against **Internal Server** on port 21, destination honeypot is **Heralding Honeypot** in **Threat Intelligence Subnet**.
@@ -41,4 +41,4 @@ $ ssh 192.168.3.11
 http://192.168.5.10/24:5601 or http://192.168.11.10/24:5601
 ```
 
-<img src="./demo/8.png" width="800" height="400">
+<img src="./demo/8.png" width="900" height="400">
