@@ -16,7 +16,7 @@ $ nmap -sT 192.168.3.0/24
 
 > Since a connection has been established also with internal decoy services, this scanning activity can be easily detected, and the internal host is identified as malicious. After a while, the MTD rules are dynamically inserted in the Internal Open vSwitch, via Controller’s API.
 
-<img src="./demo/3.png" width="600" height="400">
+<img src="./demo/3.png" width="800" height="400">
 
 3. Therefore, another scanning is performed, in order to notice **Reactive MTD Port Hopping** and **Proactive MTD Port Hopping**.
 ```  
@@ -41,4 +41,4 @@ $ ssh 192.168.3.11
 http://192.168.5.10/24:5601 or http://192.168.11.10/24:5601
 ```
 
-<img src="./demo/8.png" width="900" height="400">
+<img src="./demo/8.png" width="1100" height="400">
