@@ -26,15 +26,17 @@ avg_service_20 = 0
 avg_service_30 = 0
 avg_service_40 = 0
 
-service_first_1 = [0, 0, 0, 0, 0, 1]
+service_first_1 = [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
 
-service_first_10 = [5, 2, 7, 2, 6, 8]
+service_first_10 = [5, 2, 7, 2, 6, 8, 0, 0, 0, 0, 0, 0]
 
 service_first_20 = [15, 8, 8, 1, 8, 2, 4, 2, 7, 8, 18, 2]
 
 service_first_30 = [5, 6, 0, 5, 11, 8, 20, 13, 8, 15, 3, 12]
 
 service_first_40 = [23, 12, 12, 22, 3, 20, 16, 35, 11, 20, 8, 23]
+
+services = [service_first_1, service_first_10, service_first_20, service_first_30, service_first_40]
 
 
 avg_service_1 = s.mean([service_first_1[0], service_first_1[1], service_first_1[2], service_first_1[3], 
@@ -53,15 +55,34 @@ avg_service_40 = s.mean([service_first_40[0], service_first_40[1], service_first
 
 service_MTD = [0, avg_service_1, avg_service_10, avg_service_20, avg_service_30, avg_service_40]
 
-diff1 = 0
-diff2 = 1 - avg_service_1
-diff_3 = 10 - avg_service_10
-diff_4 = 20 - avg_service_20
-diff_5 = 30 - avg_service_30
-diff_6 = 40 - avg_service_40
+# diff1 = 0
+# diff2 = 1 - avg_service_1
+# diff_3 = 10 - avg_service_10
+# diff_4 = 20 - avg_service_20
+# diff_5 = 30 - avg_service_30
+# diff_6 = 40 - avg_service_40
 
-diff = [diff1, diff2, diff_3, diff_4, diff_5, diff_6]
-print(diff)
+# diff = [diff1, diff2, diff_3, diff_4, diff_5, diff_6]
+# print(diff)
+
+# calcolo varianza
+varianze = []
+for j in range(0, len(services)):
+    var = 0
+    sum = 0
+    for i in range(0, len(service_first_1)):
+        dif = services[j][i] - service_MTD[j + 1]
+        dif = dif*dif
+        sum = sum + dif
+    var = sum/len(service_first_1)
+    varianze.append(var)
+
+
+testo = ["var. 1 Service", "var. 10 Services", "var. 20 Services", "var. 30 Services", "var. 40 Services"]
+
+for i in range(len(testo)):
+    print(testo[i] + " = " + str(varianze[i]))
+
 service_MTD = np.interp(service_number1, service_number, service_MTD)
 
 plt.plot(service_number, service_MTD, label = 'MTD and AD')

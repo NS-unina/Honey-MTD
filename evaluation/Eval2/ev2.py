@@ -35,6 +35,7 @@ hp_first_10 = [1, 0, 0, 2, 2, 0]
 
 hp_first_12 = [4, 0, 0, 1, 0, 0]
 
+honeypots = [hp_first_2, hp_first_4, hp_first_8, hp_first_10, hp_first_12]
 
 avg_service_1 = s.mean([hp_first_2[0], hp_first_2[1], hp_first_2[2], hp_first_2[3],
                         hp_first_2[4], hp_first_2[5]])
@@ -49,6 +50,22 @@ avg_service_40 = s.mean([hp_first_12[0], hp_first_12[1], hp_first_12[2], hp_firs
 
 hp_MTD = [10, avg_service_1, avg_service_10, avg_service_20, avg_service_30, avg_service_40]
 
+# calcolo varianza
+varianze = []
+for j in range(0, len(honeypots)):
+    var = 0
+    sum = 0
+    for i in range(0, len(hp_first_2)):
+        dif = honeypots[j][i] - hp_MTD[j + 1]
+        dif = dif*dif
+        sum = sum + dif
+    var = sum/len(hp_first_2)
+    varianze.append(var)
+
+testo = ["var. 2 Honeypot", "var. 4 Honeypot", "var. 8 Honeypot", "var. 10 Honeypot", "var. 12 Honeypot"]
+
+for i in range(len(testo)):
+    print(testo[i] + " = " + str(varianze[i]))
 
 service_MTD = np.interp(hp_number1, hp_number, hp_MTD)
 
