@@ -51,30 +51,45 @@ avg_service_40 = s.mean([hp_first_12[0], hp_first_12[1], hp_first_12[2], hp_firs
 hp_MTD = [10, avg_service_1, avg_service_10, avg_service_20, avg_service_30, avg_service_40]
 
 # calcolo varianza
-varianze = []
+# varianze = []
+# for j in range(0, len(honeypots)):
+#     var = 0
+#     sum = 0
+#     for i in range(0, len(hp_first_2)):
+#         dif = honeypots[j][i] - hp_MTD[j + 1]
+#         dif = dif*dif
+#         sum = sum + dif
+#     var = sum/len(hp_first_2)
+#     varianze.append(var)
+
+# confidence interval 95%
+dev_std = []
+int_conf = []
+upper = [10]
+down = [10]
+z = 1.96
 for j in range(0, len(honeypots)):
-    var = 0
-    sum = 0
-    for i in range(0, len(hp_first_2)):
-        dif = honeypots[j][i] - hp_MTD[j + 1]
-        dif = dif*dif
-        sum = sum + dif
-    var = sum/len(hp_first_2)
-    varianze.append(var)
+    dev = np.std(honeypots[j])
+    dev_std.append(np.std(dev))
+    x = (abs(dev/np.sqrt(len(hp_first_2))))*z
+    int_conf.append(x)
+    upper.append(hp_MTD[j + 1] + x)
+    down.append(hp_MTD[j + 1] - x)
 
-testo = ["var. 2 Honeypot", "var. 4 Honeypot", "var. 8 Honeypot", "var. 10 Honeypot", "var. 12 Honeypot"]
-
-for i in range(len(testo)):
-    print(testo[i] + " = " + str(varianze[i]))
-
+upper = np.interp(hp_number1, hp_number, upper)
+down = np.interp(hp_number1, hp_number, down)
 service_MTD = np.interp(hp_number1, hp_number, hp_MTD)
 
-plt.plot(hp_number, service_MTD, label = 'MTD and AD')
-plt.plot(hp_number, hp_no_MTD, linestyle='dotted', label = 'AD')
+
+plt.plot(hp_number, upper, color='b', alpha=0.10, label = 'mean_a upper bound, I.C. 95%')
+plt.plot(hp_number, down, color='b', alpha=0.10, label = 'mean_a lower bound, I.C. 95%')
+plt.plot(hp_number, service_MTD, color='b', label = 'mean_a = mean of discovered services with Moving Target and Active Deception')
+plt.fill_between(hp_number, upper, down, color="b", alpha=0.15)
+plt.plot(hp_number, hp_no_MTD, color='r', linestyle='dotted', label = 'mean_b = mean of discovered services with Active Deception')
 plt.xlabel("Honeypots (number)")
 plt.ylabel("Avg. Discovered Real Services (number)")
 plt.xlim(0, 12)
-plt.ylim(0, 15)
+plt.ylim(-2, 15)
 plt.title("Avg. of Discovered Real Services over Honeypots (Real Services = 10)")
 plt.legend()
 plt.show()

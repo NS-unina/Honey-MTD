@@ -66,27 +66,43 @@ service_MTD = [0, avg_service_1, avg_service_10, avg_service_20, avg_service_30,
 # print(diff)
 
 # calcolo varianza
-varianze = []
+# varianze = []
+# for j in range(0, len(services)):
+#     var = 0
+#     sum = 0
+#     for i in range(0, len(service_first_1)):
+#         dif = services[j][i] - service_MTD[j + 1]
+#         dif = dif*dif
+#         sum = sum + dif
+#     var = sum/len(service_first_1)
+#     varianze.append(var)
+
+# confidence interval 95%
+dev_std = []
+int_conf = []
+upper = [0]
+down = [0]
+z = 1.96
 for j in range(0, len(services)):
-    var = 0
-    sum = 0
-    for i in range(0, len(service_first_1)):
-        dif = services[j][i] - service_MTD[j + 1]
-        dif = dif*dif
-        sum = sum + dif
-    var = sum/len(service_first_1)
-    varianze.append(var)
+    dev = np.std(services[j])
+    dev_std.append(np.std(dev))
+    x = (abs(dev/np.sqrt(len(service_first_1))))*z
+    int_conf.append(x)
+    upper.append(service_MTD[j + 1] + x)
+    down.append(service_MTD[j + 1] - x)
 
 
-testo = ["var. 1 Service", "var. 10 Services", "var. 20 Services", "var. 30 Services", "var. 40 Services"]
 
-for i in range(len(testo)):
-    print(testo[i] + " = " + str(varianze[i]))
 
 service_MTD = np.interp(service_number1, service_number, service_MTD)
+upper = np.interp(service_number1, service_number, upper)
+down = np.interp(service_number1, service_number, down)
 
-plt.plot(service_number, service_MTD, label = 'MTD and AD')
-plt.plot(service_number, service_no_MTD, linestyle='dotted', label = 'AD')
+plt.plot(service_number, upper, color='b', alpha=0.10, label = 'mean_a upper bound, I.C. 95%')
+plt.plot(service_number, down, color='b', alpha=0.10, label = 'mean_a lower bound, I.C. 95%')
+plt.plot(service_number, service_MTD, color='b', label = 'mean_a = mean of discovered services with Moving Target and Active Deception')
+plt.fill_between(service_number, upper, down, color="b", alpha=0.15)
+plt.plot(service_number, service_no_MTD, color='r', linestyle='dotted', label = 'mean_b = mean of discovered services with Active Deception')
 plt.xlabel("Real Services (number)")
 plt.ylabel("Avg. Discovered Real Services (number)")
 plt.xlim(0, 40)
@@ -94,6 +110,4 @@ plt.ylim(0, 40)
 plt.title("Avg. of Discovered Real Services over Real Services (Honeypot Number = 2)")
 plt.legend()
 plt.show()
-
-
 
