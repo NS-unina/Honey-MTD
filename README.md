@@ -45,6 +45,7 @@ $ ./setup_container.sh
 $ cd topology/docker
 $ ./auth.sh
 ```
+![topo_img](./topology/high_level_2.png)
 
 ## Execution
 ### Start Ryu Controller
@@ -66,7 +67,7 @@ $ cd elastalert
 $ python3 -m elastalert.elastalert --verbose
 ```
 
-Now it is possible to proceed with **Attack Scenarios** demonstrations.
+Now it is possible to proceed with **Attack Scenarios** demonstrations. One of them is outlined in `DEMO.md`. Project evaluation is introduced in `README.md` file, in `evaluation` folder.
 
 ## Reset
 1. In `/docker/docker-build` run **docker compose down**.
