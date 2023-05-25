@@ -7,6 +7,7 @@
 <p align="center">
     <img src="./topology/high_level_2.png" width="500" height="500">
 </p>
+
 ### Prerequirements  
 In order to execute the project on your machine
 you need to install *Open vSwitch*, *Vagrant*, *Virtualbox*, *Docker* and *Docker Compose*.
