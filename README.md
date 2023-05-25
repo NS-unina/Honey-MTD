@@ -46,7 +46,7 @@ $ cd topology/docker
 $ ./auth.sh
 ```
 <p align="center">
-    <img src="./topology/high_level_2.png" width="800" height="800">
+    <img src="./topology/high_level_2.png" width="500" height="500">
 </p>
 
 ## Execution
