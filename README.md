@@ -46,7 +46,7 @@ $ cd topology/docker
 $ ./auth.sh
 ```
 
-<img src="./topology/high_level_2.png" width="100" height="100">
+<img src="./topology/high_level_2.png" width="300" height="300">
 
 ## Execution
 ### Start Ryu Controller
