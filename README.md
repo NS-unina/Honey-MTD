@@ -8,6 +8,11 @@ you need to install *Open vSwitch*, *Vagrant*, *Virtualbox*, *Docker* and *Docke
 
 The following steps allow project running on a Linux *(Ubuntu 20.04)* machine.
 
+### Topology
+<p align="center">
+    <img src="./topology/high_level_2.png" width="500" height="500">
+</p>
+
 ### Setup
 In `topology` folder: 
 1. Execute the script **create_net.sh**.
@@ -45,9 +50,6 @@ $ ./setup_container.sh
 $ cd topology/docker
 $ ./auth.sh
 ```
-<p align="center">
-    <img src="./topology/high_level_2.png" width="500" height="500">
-</p>
 
 ## Execution
 ### Start Ryu Controller
