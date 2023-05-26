@@ -5,7 +5,7 @@
 
 ### Topology
 <p align="center">
-    <img src="./topology/high_level_2.png" width="500" height="500">
+    <img src="./topology/topo.png" width="500" height="500">
 </p>
 
 ### Prerequirements  
