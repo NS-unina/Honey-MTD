@@ -48,6 +48,8 @@ $ ./setup_container.sh
 $ cd topology/docker
 $ ./auth.sh
 ```
+### Installation Demo
+[![asciicast](https://asciinema.org/a/bP6HbdiQOGnL4mqhbgjzFg1LV.svg)](https://asciinema.org/a/bP6HbdiQOGnL4mqhbgjzFg1LV)
 
 ## Execution
 ### Start Ryu Controller
