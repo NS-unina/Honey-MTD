@@ -4,9 +4,7 @@
 ## Installation
 
 ### Topology
-<p align="center">
-    <img src="./topology/topo.png" width="500" height="500">
-</p>
+<img src="./topology/topo.png" width="500" height="500">
 
 ### Prerequirements  
 In order to execute the project on your machine
