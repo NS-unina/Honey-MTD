@@ -4,7 +4,7 @@ import numpy as np
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
-BIGGER_SIZE = 15
+BIGGER_SIZE = 13
 
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=BIGGER_SIZE)     # fontsize of the axes title
@@ -91,13 +91,11 @@ for j in range(0, len(services)):
     upper.append(service_MTD[j + 1] + x)
     down.append(service_MTD[j + 1] - x)
 
-
-
-
 service_MTD = np.interp(service_number1, service_number, service_MTD)
 upper = np.interp(service_number1, service_number, upper)
 down = np.interp(service_number1, service_number, down)
 
+plt.figure(figsize=(10, 6))
 plt.plot(service_number, upper, color='b', alpha=0.10, label = 'mean_a upper bound, I.C. 95%')
 plt.plot(service_number, down, color='b', alpha=0.10, label = 'mean_a lower bound, I.C. 95%')
 plt.plot(service_number, service_MTD, color='b', label = 'mean_a = mean of discovered services with Moving Target and Active Deception')
@@ -108,6 +106,7 @@ plt.ylabel("Avg. Discovered Real Services (number)")
 plt.xlim(0, 40)
 plt.ylim(0, 40)
 plt.title("Avg. of Discovered Real Services over Real Services (Honeypot Number = 2)")
-plt.legend()
+plt.legend(fontsize="8")
 plt.show()
+#plt.savefig('./ev1.png')
 

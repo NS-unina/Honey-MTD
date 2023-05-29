@@ -273,7 +273,7 @@ class ExampleSwitch13(app_manager.RyuApp):
                                          '192.168.5.100', datapath)          
 
         # DROP arp input to service
-        #self.drop_tcp_dstIP(parser, t.service.get_ip_addr(), datapath)
+        self.drop_tcp_dstIP(parser, t.service.get_ip_addr(), datapath)
         self.permit_tcp_host1_host2(parser, t.gw1.get_ip_addr(), t.service.get_ip_addr(), t.service.get_ovs_port(), datapath)
         self.permit_tcp_host1_host2(parser, t.elk_if1.get_ip_addr(), t.service.get_ip_addr(), t.service.get_ovs_port(), datapath)
 
