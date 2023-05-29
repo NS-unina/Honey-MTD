@@ -86,5 +86,5 @@ $ vagrant destroy
 ```
 3. In `topology` execute the script **reset.sh**.
 ```  
-./reset.sh
+$ ./reset.sh
 ```
